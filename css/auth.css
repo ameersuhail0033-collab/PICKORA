@@ -1,0 +1,115 @@
+/* =============================================================
+   PICKORA — Auth Pages
+   ============================================================= */
+.pk-auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pk-bg);
+  padding: 24px;
+  position: relative;
+}
+.pk-auth-page::before {
+  content: '';
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%);
+  top: -150px;
+  right: -100px;
+  pointer-events: none;
+}
+.pk-auth-card {
+  max-width: 460px;
+  width: 100%;
+  background: var(--pk-surface);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  padding: 40px;
+  position: relative;
+  z-index: 1;
+}
+.pk-auth-logo { text-align: center; margin-bottom: 28px; }
+.pk-auth-logo img { height: 48px; margin: 0 auto 8px; }
+.pk-auth-logo-text {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--pk-navy);
+}
+.pk-auth-logo-text span { color: var(--pk-violet); }
+.pk-auth-card h2 {
+  font-size: 1.4rem;
+  color: var(--pk-navy);
+  margin-bottom: 4px;
+}
+.pk-auth-card .pk-auth-sub {
+  color: var(--pk-text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 28px;
+}
+.pk-auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: var(--pk-text-muted);
+  font-size: 0.82rem;
+}
+.pk-auth-divider::before, .pk-auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--pk-border);
+}
+.pk-auth-social-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--pk-border);
+  background: var(--pk-surface);
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--pk-text);
+  transition: all var(--duration-fast);
+}
+.pk-auth-social-btn:hover { border-color: var(--pk-violet); background: rgba(139,92,246,0.03); }
+.pk-auth-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.88rem;
+  color: var(--pk-text-muted);
+}
+.pk-auth-link a { color: var(--pk-violet); font-weight: 600; }
+.pk-auth-link a:hover { text-decoration: underline; }
+.pk-auth-error {
+  display: none;
+  color: var(--pk-danger);
+  font-size: 0.88rem;
+  padding: 12px 16px;
+  background: rgba(239,68,68,0.06);
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  border-left: 3px solid var(--pk-danger);
+}
+.pk-auth-error.show { display: block; }
+.pk-password-strength { display: flex; gap: 4px; margin-top: 6px; }
+.pk-password-strength-bar {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--pk-border);
+  transition: background var(--duration-fast);
+}
+.pk-password-strength-bar.active-weak { background: var(--pk-danger); }
+.pk-password-strength-bar.active-medium { background: var(--pk-warning); }
+.pk-password-strength-bar.active-strong { background: var(--pk-success); }
+@media (max-width: 768px) {
+  .pk-auth-card { padding: 28px 24px; }
+}

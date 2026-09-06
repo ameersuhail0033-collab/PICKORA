@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ — Pickora</title>
+  <meta name="description" content="Frequently asked questions about Pickora refurbished laptops.">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+</head>
+<body>
+  <header class="pk-header" id="navbar"></header>
+  <main style="padding:120px 0 64px;">
+    <div class="container" style="max-width:800px;">
+      <div style="text-align:center;margin-bottom:48px;">
+        <span class="pk-pill pk-pill-navy">SUPPORT</span>
+        <h1 style="font-size:clamp(1.5rem,3vw,2.2rem);font-weight:800;color:var(--pk-navy);margin:12px 0 8px;">Frequently Asked Questions</h1>
+        <p style="color:var(--pk-text-muted);">Everything you need to know about our refurbished laptops</p>
+      </div>
+      <div class="pk-faq-list" id="faq-list"></div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script>
+  <script>
+  (function(){
+    var faqs = [
+      { q: 'What does "refurbished" mean?', a: 'Our laptops are pre-owned devices that have been professionally inspected, cleaned, tested, and restored to full working condition. Each laptop undergoes a 50+ point quality check before being listed.' },
+      { q: 'What warranty do you offer?', a: 'All laptops come with a 12-month warranty covering hardware defects. If your laptop develops a fault within the warranty period, we will repair or replace it at no cost.' },
+      { q: 'What condition grades do you use?', a: 'We grade laptops as: Grade A (excellent, minimal cosmetic wear), Grade B (good, light scratches), and Renewed (fully functional, visible cosmetic wear). Each product listing shows the exact condition.' },
+      { q: 'Do laptops come with Windows installed?', a: 'Yes, all Windows laptops come with a fresh installation of Windows 10 or 11, fully activated and updated. All drivers are pre-installed and ready to go.' },
+      { q: 'What payment methods do you accept?', a: 'We accept all major credit and debit cards through our secure payment partner Nomod. We also offer Cash on Delivery for orders within the UAE.' },
+      { q: 'How long does delivery take?', a: 'Standard delivery within the UAE takes 2-4 business days. Dubai orders may arrive as quickly as next day. Express delivery options are available at checkout.' },
+      { q: 'Can I return a laptop?', a: 'Yes, we offer a 14-day return policy. If you are not satisfied with your purchase, you can return it in its original condition for a full refund. See our Returns page for details.' },
+      { q: 'Are these original manufacturer products?', a: 'Yes, we sell genuine products from Dell, HP, Lenovo, ASUS, and Apple. We are not affiliated with the manufacturers, but all products are authentic and sourced from reputable channels.' },
+      { q: 'Do you offer bulk/corporate orders?', a: 'Yes! We provide competitive pricing for bulk orders of 5+ laptops. Contact us at support@pickoraonline.com or WhatsApp us for a custom quote.' },
+      { q: 'How can I track my order?', a: 'Once your order is shipped, you will receive a tracking link via email and SMS. You can also track your order from your account dashboard under Order History.' },
+    ];
+    var container = document.getElementById('faq-list');
+    faqs.forEach(function(faq, i) {
+      var div = document.createElement('div');
+      div.className = 'pk-faq-item';
+      div.innerHTML = '<button class="pk-faq-question" onclick="this.parentElement.classList.toggle(\'open\')">' +
+        '<span>' + esc(faq.q) + '</span>' +
+        '<span class="pk-faq-icon">+</span></button>' +
+        '<div class="pk-faq-answer"><p>' + esc(faq.a) + '</p></div>';
+      container.appendChild(div);
+    });
+  })();
+  </script>
+</body>
+</html>

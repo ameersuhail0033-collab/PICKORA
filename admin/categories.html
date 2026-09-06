@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Categories — Admin — {{STORE_NAME}}</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <script src="/js/env.js"></script><script src="/js/config.js"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="admin-sidebar" id="admin-sidebar"></aside>
+    <main class="admin-main">
+      <div class="admin-topbar"><h1>Categories</h1><button class="btn btn-primary" onclick="showCategoryForm()">+ Add Category</button></div>
+      <div class="admin-table-card glass-card">
+        <div class="table-container" style="border:none;border-radius:0;">
+          <table class="table"><thead><tr><th>Name</th><th>Slug</th><th>Products</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="categories-tbody"><tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted);">Loading...</td></tr></tbody></table>
+        </div>
+      </div>
+      <div class="modal-overlay" id="category-modal" style="display:none;">
+        <div class="modal-content glass-card" style="max-width:480px;">
+          <div class="modal-header"><h3 id="cat-form-title">Add Category</h3><button class="modal-close" onclick="closeCategoryForm()">&times;</button></div>
+          <form id="category-form" onsubmit="saveCategory(event)">
+            <input type="hidden" name="id" id="cf-id">
+            <div class="form-group"><label class="form-label">Name *</label><input class="form-input" name="name" id="cf-name" required></div>
+            <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" name="description" id="cf-desc" rows="2"></textarea></div>
+            <div class="form-group"><label class="form-label">Sort Order</label><input class="form-input" type="number" name="sort_order" id="cf-sort" value="0"></div>
+            <div class="form-group"><label class="form-check"><input type="checkbox" name="is_active" id="cf-active" checked> Active</label></div>
+            <div class="admin-form-actions">
+              <button type="button" class="btn btn-secondary" onclick="closeCategoryForm()">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script>
+  <script src="/js/admin.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',function(){initAdminSidebar('categories');loadAdminCategories();});</script>
+</body>
+</html>

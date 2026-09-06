@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — {{STORE_NAME}}</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="admin-sidebar" id="admin-sidebar"></aside>
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <h1>Dashboard</h1>
+          <p style="color:var(--text-muted);font-size:0.9rem;">Welcome back! Here's your store overview.</p>
+        </div>
+        <div class="admin-topbar-actions">
+          <button class="theme-toggle btn btn-secondary btn-sm" onclick="toggleTheme()">🌓 Theme</button>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid" id="kpi-grid">
+        <div class="kpi-card glass-card"><div class="kpi-card-header"><span class="kpi-card-label">Total Revenue</span><div class="kpi-card-icon green">💰</div></div><div class="kpi-card-value" id="kpi-revenue">$0</div></div>
+        <div class="kpi-card glass-card"><div class="kpi-card-header"><span class="kpi-card-label">Total Orders</span><div class="kpi-card-icon purple">📦</div></div><div class="kpi-card-value" id="kpi-orders">0</div></div>
+        <div class="kpi-card glass-card"><div class="kpi-card-header"><span class="kpi-card-label">Avg Order Value</span><div class="kpi-card-icon blue">📊</div></div><div class="kpi-card-value" id="kpi-aov">$0</div></div>
+        <div class="kpi-card glass-card"><div class="kpi-card-header"><span class="kpi-card-label">Total Customers</span><div class="kpi-card-icon orange">👥</div></div><div class="kpi-card-value" id="kpi-customers">0</div></div>
+        <div class="kpi-card glass-card"><div class="kpi-card-header"><span class="kpi-card-label">Pending Orders</span><div class="kpi-card-icon red">⏳</div></div><div class="kpi-card-value" id="kpi-pending">0</div></div>
+        <div class="kpi-card glass-card"><div class="kpi-card-header"><span class="kpi-card-label">Low Stock</span><div class="kpi-card-icon orange">⚠️</div></div><div class="kpi-card-value" id="kpi-lowstock">0</div></div>
+      </div>
+
+      <!-- Revenue Chart -->
+      <div class="chart-container glass-card">
+        <div class="chart-header">
+          <h3>Revenue (Last 30 Days)</h3>
+          <div class="chart-filters">
+            <button class="btn btn-ghost btn-sm active" onclick="loadChart('day',this)">Daily</button>
+            <button class="btn btn-ghost btn-sm" onclick="loadChart('week',this)">Weekly</button>
+          </div>
+        </div>
+        <div class="chart-canvas-wrap">
+          <canvas id="revenue-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Recent Orders -->
+      <div class="admin-table-card glass-card">
+        <div class="admin-table-header">
+          <h3>Recent Orders</h3>
+          <a href="/admin/orders.html" class="btn btn-ghost btn-sm">View All →</a>
+        </div>
+        <div class="table-container" style="border:none;border-radius:0;">
+          <table class="table" id="recent-orders-table">
+            <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Payment</th><th>Date</th></tr></thead>
+            <tbody id="recent-orders"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Top Products -->
+      <div class="admin-table-card glass-card" style="margin-top:1.5rem;">
+        <div class="admin-table-header">
+          <h3>Top Products</h3>
+        </div>
+        <div class="table-container" style="border:none;border-radius:0;">
+          <table class="table">
+            <thead><tr><th>Product</th><th>Sales</th><th>Revenue</th></tr></thead>
+            <tbody id="top-products"><tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--text-muted);">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script>
+  <script src="/js/admin.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',function(){initAdminSidebar('dashboard');loadDashboard();});</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Today's Deals — Pickora</title>
+  <meta name="description" content="Save big on premium refurbished laptops. Today's best deals at Pickora.">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/shop.css">
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+</head>
+<body>
+  <header class="pk-header" id="navbar"></header>
+  <main class="pk-shop-canvas">
+    <div class="container">
+      <!-- Deals hero banner -->
+      <div class="pk-deals-hero">
+        <div class="pk-deals-hero-content">
+          <span class="pk-pill pk-pill-violet">🔥 DEALS</span>
+          <h1>Today's Best Deals</h1>
+          <p>Save up to 40% on premium refurbished laptops. Limited stock — grab them before they're gone.</p>
+        </div>
+        <div class="pk-deals-hero-badge">
+          <div class="pk-deals-badge-inner">
+            <span class="pk-deals-badge-text">UP TO</span>
+            <span class="pk-deals-badge-value">40%</span>
+            <span class="pk-deals-badge-text">OFF</span>
+          </div>
+        </div>
+      </div>
+      <div class="pk-product-grid" id="deals-products"></div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script>
+  <script>
+  (async function() {
+    if (!window.db) await new Promise(function(r){setTimeout(r,300);});
+    var container = document.getElementById('deals-products');
+    container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--pk-text-muted);">Loading deals...</div>';
+    var result = await db.from('products')
+      .select('*, categories(name,slug), product_images(url,alt,sort_order,is_primary)')
+      .eq('is_active', true).is('deleted_at', null)
+      .not('compare_at_price', 'is', null)
+      .filter('compare_at_price', 'gt', 'price')
+      .order('compare_at_price', {ascending:false})
+      .limit(24);
+    if (!result.data || result.data.length === 0) {
+      container.innerHTML = '<div class="pk-empty" style="grid-column:1/-1;"><div style="font-size:3rem;">🏷️</div><h3>No deals right now</h3><p>Check back soon for new discounts.</p><a href="/pages/shop.html" class="pk-btn pk-btn-primary">Browse All Laptops</a></div>';
+      return;
+    }
+    var html = '';
+    result.data.forEach(function(p,i){ p.category_name=p.categories?p.categories.name:''; html+=renderProductCard(p,i); });
+    container.innerHTML = html;
+  })();
+  </script>
+</body>
+</html>

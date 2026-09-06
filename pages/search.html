@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search — Pickora</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/shop.css">
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+</head>
+<body>
+  <header class="pk-header" id="navbar"></header>
+  <main class="pk-shop-canvas">
+    <div class="container">
+      <div class="pk-shop-hero">
+        <div class="pk-shop-hero-text">
+          <span class="pk-pill pk-pill-navy">SEARCH</span>
+          <h1>Search Results</h1>
+          <p id="search-query-text">Loading...</p>
+        </div>
+      </div>
+      <div class="pk-product-grid" id="search-results"></div>
+      <div id="search-pagination" class="pk-pagination"></div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script>
+  <script>
+  (async function() {
+    var q = new URLSearchParams(window.location.search).get('q') || '';
+    document.getElementById('search-query-text').textContent = q ? 'Results for "' + q + '"' : 'Enter a search term';
+    document.title = (q ? 'Search: ' + q + ' — ' : 'Search — ') + 'Pickora';
+    if (!q || !window.db) return;
+    await new Promise(function(r){setTimeout(r,300);});
+    var container = document.getElementById('search-results');
+    container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--pk-text-muted);">Searching...</div>';
+    var result = await db.from('products')
+      .select('*, categories(name,slug), product_images(url,alt,sort_order,is_primary)', {count:'exact'})
+      .eq('is_active', true).is('deleted_at', null)
+      .or('name.ilike.%'+q+'%,brand.ilike.%'+q+'%,short_description.ilike.%'+q+'%')
+      .order('created_at', {ascending:false}).limit(24);
+    if (!result.data || result.data.length === 0) {
+      container.innerHTML = '<div class="pk-empty" style="grid-column:1/-1;"><div style="font-size:3rem;">🔍</div><h3>No results for "' + esc(q) + '"</h3><p>Try different keywords or browse our categories.</p><a href="/pages/shop.html" class="pk-btn pk-btn-primary">Browse All Laptops</a></div>';
+      return;
+    }
+    document.getElementById('search-query-text').textContent = result.data.length + ' product' + (result.data.length!==1?'s':'') + ' found for "' + q + '"';
+    var html = '';
+    result.data.forEach(function(p,i){ p.category_name=p.categories?p.categories.name:''; p.category_slug=p.categories?p.categories.slug:''; html+=renderProductCard(p,i); });
+    container.innerHTML = html;
+  })();
+  </script>
+</body>
+</html>

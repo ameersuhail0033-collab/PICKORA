@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders — Admin — {{STORE_NAME}}</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <script src="/js/env.js"></script><script src="/js/config.js"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="admin-sidebar" id="admin-sidebar"></aside>
+    <main class="admin-main">
+      <div class="admin-topbar"><h1>Orders</h1></div>
+      <div class="admin-table-card glass-card">
+        <div class="admin-table-header">
+          <div class="admin-table-search"><span>🔍</span><input type="text" id="order-search" placeholder="Search orders..." oninput="searchOrders(this.value)"></div>
+          <select class="form-select" id="order-status-filter" onchange="filterOrders()" style="padding:0.5rem 2rem 0.5rem 0.75rem;font-size:0.85rem;">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="processing">Processing</option>
+            <option value="shipped">Shipped</option><option value="delivered">Delivered</option><option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="table-container" style="border:none;border-radius:0;">
+          <table class="table"><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody id="orders-tbody"><tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted);">Loading...</td></tr></tbody></table>
+        </div>
+        <div id="orders-pagination" style="padding:1rem;"></div>
+      </div>
+      <div class="modal-overlay" id="order-modal" style="display:none;">
+        <div class="modal-content glass-card" style="max-width:640px;max-height:90vh;overflow-y:auto;">
+          <div class="modal-header"><h3>Order Detail</h3><button class="modal-close" onclick="closeOrderDetail()">&times;</button></div>
+          <div id="order-detail-content"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script>
+  <script src="/js/admin.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',function(){initAdminSidebar('orders');loadAdminOrders();});</script>
+</body>
+</html>

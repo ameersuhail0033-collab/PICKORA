@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop — Pickora</title>
+  <meta name="description" content="Browse our collection of premium refurbished laptops.">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/shop.css">
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+</head>
+<body>
+
+  <header class="pk-header" id="navbar"></header>
+
+  <!-- Bento canvas -->
+  <main class="pk-shop-canvas">
+    <div class="container">
+      <!-- Page header inside canvas -->
+      <div class="pk-shop-hero">
+        <div class="pk-shop-hero-text">
+          <span class="pk-pill pk-pill-navy">SHOP</span>
+          <h1>All Laptops</h1>
+          <p>Browse our collection of premium refurbished laptops</p>
+        </div>
+        <div class="pk-shop-hero-stats">
+          <div class="pk-shop-stat">
+            <span class="pk-shop-stat-value" id="result-count">Loading...</span>
+            <span class="pk-shop-stat-label">Products</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile filter toggle -->
+      <div class="pk-shop-mobile-bar">
+        <button class="pk-btn pk-btn-outline pk-btn-sm" onclick="document.querySelector('.pk-shop-sidebar').classList.toggle('open')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="16" y2="12"/><line x1="4" y1="18" x2="12" y2="18"/></svg>
+          Filters
+        </button>
+        <div class="pk-shop-sort">
+          <select id="sort-select" onchange="loadShopProducts()" class="pk-select">
+            <option value="newest">Newest</option>
+            <option value="price-asc">Price: Low → High</option>
+            <option value="price-desc">Price: High → Low</option>
+            <option value="name">Name: A-Z</option>
+            <option value="rating">Highest Rated</option>
+            <option value="popular">Most Popular</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="pk-shop-layout">
+        <!-- Sidebar filters -->
+        <aside class="pk-shop-sidebar" id="shop-sidebar">
+          <div class="pk-shop-sidebar-inner">
+            <div class="pk-filter-section">
+              <div class="pk-header-search" style="max-width:100%;">
+                <span class="pk-header-search-icon">🔍</span>
+                <input type="text" id="search-input" placeholder="Search laptops..." autocomplete="off">
+              </div>
+            </div>
+            <div class="pk-filter-section">
+              <h4>Category</h4>
+              <div id="filter-categories" class="pk-filter-pills"></div>
+            </div>
+            <div class="pk-filter-section">
+              <h4>Brand</h4>
+              <div id="filter-brands" class="pk-filter-pills"></div>
+            </div>
+            <div class="pk-filter-section">
+              <h4>Price Range</h4>
+              <div class="pk-filter-price">
+                <input type="number" id="price-min" class="pk-input" placeholder="Min" min="0">
+                <span class="pk-filter-price-sep">—</span>
+                <input type="number" id="price-max" class="pk-input" placeholder="Max" min="0">
+              </div>
+              <button class="pk-btn pk-btn-primary pk-btn-sm w-full" onclick="applyPriceFilter()" style="margin-top:8px;">Apply</button>
+            </div>
+            <button class="pk-btn pk-btn-ghost pk-btn-sm w-full" onclick="clearFilters()">Clear All Filters</button>
+          </div>
+        </aside>
+
+        <!-- Products -->
+        <div class="pk-shop-main">
+          <div class="pk-active-filters" id="active-filters"></div>
+          <div class="pk-product-grid" id="shop-products"></div>
+          <div id="shop-pagination" class="pk-pagination"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer id="footer"></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script><script src="/js/products.js"></script>
+</body>
+</html>

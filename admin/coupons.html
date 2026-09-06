@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coupons — Admin — {{STORE_NAME}}</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <script src="/js/env.js"></script><script src="/js/config.js"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="admin-sidebar" id="admin-sidebar"></aside>
+    <main class="admin-main">
+      <div class="admin-topbar"><h1>Coupons</h1><button class="btn btn-primary" onclick="showCouponForm()">+ Add Coupon</button></div>
+      <div class="admin-table-card glass-card">
+        <div class="table-container" style="border:none;border-radius:0;">
+          <table class="table"><thead><tr><th>Code</th><th>Type</th><th>Value</th><th>Min Order</th><th>Uses</th><th>Max Uses</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="coupons-tbody"><tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted);">Loading...</td></tr></tbody></table>
+        </div>
+      </div>
+      <div class="modal-overlay" id="coupon-modal" style="display:none;">
+        <div class="modal-content glass-card" style="max-width:480px;">
+          <div class="modal-header"><h3 id="coupon-form-title">Add Coupon</h3><button class="modal-close" onclick="closeCouponForm()">&times;</button></div>
+          <form id="coupon-form" onsubmit="saveCoupon(event)">
+            <input type="hidden" name="id" id="cpf-id">
+            <div class="form-group"><label class="form-label">Code *</label><input class="form-input" name="code" id="cpf-code" required style="text-transform:uppercase;"></div>
+            <div class="form-group"><label class="form-label">Discount Type</label><select class="form-select" name="discount_type" id="cpf-type"><option value="percentage">Percentage</option><option value="fixed">Fixed Amount</option></select></div>
+            <div class="form-group"><label class="form-label">Discount Value *</label><input class="form-input" type="number" step="0.01" name="discount_value" id="cpf-value" required></div>
+            <div class="form-group"><label class="form-label">Min Order Amount</label><input class="form-input" type="number" step="0.01" name="min_order" id="cpf-min" value="0"></div>
+            <div class="form-group"><label class="form-label">Max Uses (0=unlimited)</label><input class="form-input" type="number" name="max_uses" id="cpf-max" value="0"></div>
+            <div class="form-group"><label class="form-label">Expires At</label><input class="form-input" type="datetime-local" name="expires_at" id="cpf-expires"></div>
+            <div class="form-group"><label class="form-check"><input type="checkbox" name="is_active" id="cpf-active" checked> Active</label></div>
+            <div class="admin-form-actions">
+              <button type="button" class="btn btn-secondary" onclick="closeCouponForm()">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script>
+  <script src="/js/admin.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',function(){initAdminSidebar('coupons');loadAdminCoupons();});</script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store Setup Wizard — Pickora</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .setup-page { min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--gradient-hero);padding:2rem; }
+    .setup-card { max-width:640px;width:100%;padding:2.5rem; }
+    .setup-progress { display:flex;gap:0.5rem;margin-bottom:2rem; }
+    .setup-step-dot { flex:1;height:4px;border-radius:2px;background:var(--border-secondary);transition:background 0.3s; }
+    .setup-step-dot.active { background:var(--brand-primary); }
+    .setup-step-dot.completed { background:var(--brand-accent); }
+    .setup-step { display:none; }
+    .setup-step.active { display:block; }
+    .setup-step h2 { margin-bottom:0.5rem; }
+    .setup-step p { color:var(--text-secondary);margin-bottom:1.5rem; }
+    .setup-color-group { display:flex;gap:1rem;margin-bottom:1rem; }
+    .setup-color-input { flex:1; }
+    .setup-color-input label { display:block;font-size:0.85rem;font-weight:600;margin-bottom:0.3rem; }
+    .setup-color-input input[type="color"] { width:100%;height:44px;border:1px solid var(--border-secondary);border-radius:var(--radius-md);cursor:pointer;background:transparent;padding:4px; }
+    .setup-actions { display:flex;justify-content:space-between;margin-top:2rem; }
+    .setup-preview { margin-top:1.5rem;padding:1rem;background:var(--bg-glass);border-radius:var(--radius-lg);text-align:center; }
+    .setup-preview .preview-bar { height:8px;border-radius:4px;margin-bottom:0.5rem; }
+  </style>
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+</head>
+<body>
+  <div class="setup-page">
+    <div class="setup-card glass-card">
+      <!-- Progress -->
+      <div class="setup-progress" id="setup-progress">
+        <div class="setup-step-dot active" data-step="1"></div>
+        <div class="setup-step-dot" data-step="2"></div>
+        <div class="setup-step-dot" data-step="3"></div>
+        <div class="setup-step-dot" data-step="4"></div>
+      </div>
+
+      <!-- Step 1: Brand Identity -->
+      <div class="setup-step active" data-step="1">
+        <h2>Welcome to Pickora! 👋</h2>
+        <p>Let's set up your store. First, tell us about your brand.</p>
+        <div class="form-group">
+          <label class="form-label">Store Name *</label>
+          <input type="text" class="form-input" id="s-store-name" placeholder="e.g., Pickora Laptops" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Company Name</label>
+          <input type="text" class="form-input" id="s-company-name" placeholder="e.g., Pickora LLC">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Logo</label>
+          <input type="file" class="form-input" id="s-logo" accept="image/*">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Favicon</label>
+          <input type="file" class="form-input" id="s-favicon" accept="image/*,.ico">
+        </div>
+        <div class="setup-actions">
+          <div></div>
+          <button class="btn btn-primary" onclick="setupNext(1)">Next →</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Colors -->
+      <div class="setup-step" data-step="2">
+        <h2>Brand Colors 🎨</h2>
+        <p>Choose your brand color palette.</p>
+        <div class="setup-color-group">
+          <div class="setup-color-input">
+            <label>Primary Color</label>
+            <input type="color" id="s-primary" value="#8B5CF6">
+          </div>
+          <div class="setup-color-input">
+            <label>Secondary Color</label>
+            <input type="color" id="s-secondary" value="#261A66">
+          </div>
+          <div class="setup-color-input">
+            <label>Accent Color</label>
+            <input type="color" id="s-accent" value="#84CC16">
+          </div>
+        </div>
+        <div class="setup-preview">
+          <div class="preview-bar" id="preview-primary" style="background:#8B5CF6;"></div>
+          <div class="preview-bar" id="preview-secondary" style="background:#261A66;"></div>
+          <div class="preview-bar" id="preview-accent" style="background:#84CC16;"></div>
+          <p style="font-size:0.85rem;margin-top:0.5rem;">Color Preview</p>
+        </div>
+        <div class="form-group" style="margin-top:1rem;">
+          <label class="form-label">Currency</label>
+          <select class="form-select" id="s-currency">
+            <option value="USD">USD ($)</option>
+            <option value="AED">AED (د.إ)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="GBP">GBP (£)</option>
+          </select>
+        </div>
+        <div class="setup-actions">
+          <button class="btn btn-secondary" onclick="setupBack(2)">← Back</button>
+          <button class="btn btn-primary" onclick="setupNext(2)">Next →</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Contact & Social -->
+      <div class="setup-step" data-step="3">
+        <h2>Contact Information 📧</h2>
+        <p>How can customers reach you?</p>
+        <div class="form-group">
+          <label class="form-label">Support Email *</label>
+          <input type="email" class="form-input" id="s-support-email" placeholder="support@yourdomain.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="tel" class="form-input" id="s-support-phone" placeholder="+971 50 123 4567">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Address</label>
+          <input type="text" class="form-input" id="s-address" placeholder="123 Business St, City, Country">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Facebook URL</label>
+          <input type="url" class="form-input" id="s-facebook" placeholder="https://facebook.com/yourstore">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Instagram URL</label>
+          <input type="url" class="form-input" id="s-instagram" placeholder="https://instagram.com/yourstore">
+        </div>
+        <div class="setup-actions">
+          <button class="btn btn-secondary" onclick="setupBack(3)">← Back</button>
+          <button class="btn btn-primary" onclick="setupNext(3)">Next →</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Create Admin Account -->
+      <div class="setup-step" data-step="4">
+        <h2>Create Admin Account 🔐</h2>
+        <p>This will be the first admin account. The first registered user automatically gets admin privileges.</p>
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input type="text" class="form-input" id="s-admin-name" placeholder="Your name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email *</label>
+          <input type="email" class="form-input" id="s-admin-email" placeholder="admin@yourdomain.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password *</label>
+          <input type="password" class="form-input" id="s-admin-password" placeholder="Minimum 8 characters" minlength="8">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Setup Secret *</label>
+          <input type="password" class="form-input" id="s-setup-secret" placeholder="Enter SETUP_ADMIN_SECRET from your .env file">
+          <small style="color:var(--pk-text-muted);font-size:0.78rem;display:block;margin-top:4px;">Found in your server environment variables. This creates the first admin account.</small>
+        </div>
+        <div id="setup-error" style="display:none;color:#EF4444;font-size:0.9rem;margin-bottom:1rem;"></div>
+        <div class="setup-actions">
+          <button class="btn btn-secondary" onclick="setupBack(4)">← Back</button>
+          <button class="btn btn-accent btn-lg" onclick="submitSetup()" id="setup-submit">🚀 Launch Store</button>
+        </div>
+      </div>
+
+      <!-- Success -->
+      <div class="setup-step" data-step="5" style="text-align:center;">
+        <div style="font-size:4rem;margin-bottom:1rem;">🎉</div>
+        <h2>Store is Live!</h2>
+        <p>Your store has been configured and your admin account is ready.</p>
+        <div class="setup-actions" style="justify-content:center;">
+          <a href="/admin" class="btn btn-primary">Go to Admin Dashboard</a>
+          <a href="/" class="btn btn-secondary">View Store</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/supabase.js"></script>
+  <script src="/js/setup.js"></script>
+</body>
+</html>

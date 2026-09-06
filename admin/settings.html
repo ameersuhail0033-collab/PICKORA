@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Store Settings — Admin — {{STORE_NAME}}</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <script src="/js/env.js"></script><script src="/js/config.js"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="admin-sidebar" id="admin-sidebar"></aside>
+    <main class="admin-main">
+      <div class="admin-topbar"><h1>Store Settings</h1><p style="color:var(--text-muted);font-size:0.9rem;">White-label control panel — changes apply site-wide.</p></div>
+
+      <form id="settings-form" onsubmit="saveSettings(event)">
+        <!-- Brand Identity -->
+        <div class="admin-form-card glass-card" style="margin-bottom:1.5rem;">
+          <h3 style="margin-bottom:1.25rem;">🎨 Brand Identity</h3>
+          <div class="admin-form-grid">
+            <div class="form-group"><label class="form-label">Store Name</label><input class="form-input" name="store_name" id="sf-name"></div>
+            <div class="form-group"><label class="form-label">Company Name</label><input class="form-input" name="company_name" id="sf-company"></div>
+            <div class="form-group full-width"><label class="form-label">Logo URL</label><input class="form-input" name="logo_url" id="sf-logo" placeholder="https://..."></div>
+            <div class="form-group full-width"><label class="form-label">Favicon URL</label><input class="form-input" name="favicon_url" id="sf-favicon" placeholder="https://..."></div>
+          </div>
+        </div>
+
+        <!-- Colors -->
+        <div class="admin-form-card glass-card" style="margin-bottom:1.5rem;">
+          <h3 style="margin-bottom:1.25rem;">🌈 Brand Colors</h3>
+          <div class="admin-form-grid">
+            <div class="form-group"><label class="form-label">Primary Color</label><input type="color" class="form-input" name="primary_color" id="sf-primary" style="height:44px;padding:4px;"></div>
+            <div class="form-group"><label class="form-label">Secondary Color</label><input type="color" class="form-input" name="secondary_color" id="sf-secondary" style="height:44px;padding:4px;"></div>
+            <div class="form-group"><label class="form-label">Accent Color</label><input type="color" class="form-input" name="accent_color" id="sf-accent" style="height:44px;padding:4px;"></div>
+          </div>
+        </div>
+
+        <!-- Contact -->
+        <div class="admin-form-card glass-card" style="margin-bottom:1.5rem;">
+          <h3 style="margin-bottom:1.25rem;">📧 Contact & Shipping</h3>
+          <div class="admin-form-grid">
+            <div class="form-group"><label class="form-label">Support Email</label><input class="form-input" type="email" name="support_email" id="sf-email"></div>
+            <div class="form-group"><label class="form-label">Support Phone</label><input class="form-input" name="support_phone" id="sf-phone"></div>
+            <div class="form-group full-width"><label class="form-label">Address</label><input class="form-input" name="address" id="sf-address"></div>
+            <div class="form-group"><label class="form-label">Currency</label><select class="form-select" name="currency" id="sf-currency"><option value="USD">USD</option><option value="AED">AED</option><option value="EUR">EUR</option><option value="GBP">GBP</option></select></div>
+            <div class="form-group"><label class="form-label">Tax Rate (%)</label><input class="form-input" type="number" step="0.01" name="tax_rate" id="sf-tax"></div>
+            <div class="form-group"><label class="form-label">Shipping Cost</label><input class="form-input" type="number" step="0.01" name="shipping_cost" id="sf-shipping"></div>
+            <div class="form-group"><label class="form-label">Free Shipping Threshold</label><input class="form-input" type="number" step="0.01" name="free_shipping_threshold" id="sf-freeship"></div>
+          </div>
+        </div>
+
+        <!-- Social -->
+        <div class="admin-form-card glass-card" style="margin-bottom:1.5rem;">
+          <h3 style="margin-bottom:1.25rem;">🌐 Social Links</h3>
+          <div class="admin-form-grid">
+            <div class="form-group"><label class="form-label">Facebook</label><input class="form-input" name="social_facebook" id="sf-facebook"></div>
+            <div class="form-group"><label class="form-label">Instagram</label><input class="form-input" name="social_instagram" id="sf-instagram"></div>
+            <div class="form-group"><label class="form-label">Twitter / X</label><input class="form-input" name="social_twitter" id="sf-twitter"></div>
+            <div class="form-group"><label class="form-label">YouTube</label><input class="form-input" name="social_youtube" id="sf-youtube"></div>
+          </div>
+        </div>
+
+        <!-- SEO -->
+        <div class="admin-form-card glass-card" style="margin-bottom:1.5rem;">
+          <h3 style="margin-bottom:1.25rem;">🔍 SEO</h3>
+          <div class="admin-form-grid">
+            <div class="form-group full-width"><label class="form-label">Meta Description</label><textarea class="form-textarea" name="meta_description" id="sf-meta" rows="2"></textarea></div>
+            <div class="form-group full-width"><label class="form-label">OG Image URL</label><input class="form-input" name="og_image_url" id="sf-og"></div>
+          </div>
+        </div>
+
+        <!-- Maintenance -->
+        <div class="admin-form-card glass-card" style="margin-bottom:1.5rem;">
+          <h3 style="margin-bottom:1.25rem;">🔧 Maintenance</h3>
+          <div class="form-group"><label class="form-check"><input type="checkbox" name="maintenance_mode" id="sf-maintenance"> Enable maintenance mode</label></div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:0.75rem;">
+          <button type="button" class="btn btn-secondary" onclick="loadSettingsForm()">Reset</button>
+          <button type="submit" class="btn btn-primary">Save Settings</button>
+        </div>
+      </form>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script>
+  <script src="/js/admin.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',function(){initAdminSidebar('settings');loadSettingsForm();});</script>
+</body>
+</html>

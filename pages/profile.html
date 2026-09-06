@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile — Pickora</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+</head>
+<body>
+  <header class="pk-header" id="navbar"></header>
+  <main style="padding:100px 0 48px;">
+    <div class="container" style="max-width:640px;">
+      <div style="margin-bottom:8px;"><span class="pk-pill pk-pill-navy">ACCOUNT</span></div>
+      <h1 style="font-size:1.8rem;font-weight:800;color:var(--pk-navy);margin-bottom:24px;">My Profile</h1>
+      <div class="pk-card-flat" style="padding:32px;" id="profile-card">
+        <div style="text-align:center;padding:2rem;color:var(--pk-text-muted);">Loading profile...</div>
+      </div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded',async function(){
+    if(!window.db)await new Promise(r=>setTimeout(r,300));
+    var user=await getUser();
+    if(!user){window.location.href='/pages/login.html?return=/pages/profile.html';return;}
+    var profile=await getUserProfile(user.id);
+    if(!profile){document.getElementById('profile-card').innerHTML='<p>Profile not found.</p>';return;}
+    document.getElementById('profile-card').innerHTML=
+      '<div style="text-align:center;margin-bottom:24px;">'+
+        '<div style="width:80px;height:80px;border-radius:50%;background:var(--pk-navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.75rem;font-weight:800;margin:0 auto 12px;">'+esc((profile.full_name||'U').charAt(0).toUpperCase())+'</div>'+
+        '<h3 style="color:var(--pk-navy);">'+esc(profile.full_name||'User')+'</h3>'+
+        '<p style="color:var(--pk-text-muted);">'+esc(profile.email)+'</p>'+
+        '<span class="pk-pill pk-pill-violet" style="margin-top:8px;">'+esc(profile.role)+'</span>'+
+      '</div>'+
+      '<form id="profile-form">'+
+        '<div class="pk-input-group"><label class="pk-label">Full Name</label><input class="pk-input" name="full_name" value="'+esc(profile.full_name||'')+'"></div>'+
+        '<div class="pk-input-group"><label class="pk-label">Phone</label><input class="pk-input" name="phone" value="'+esc(profile.phone||'')+'"></div>'+
+        '<div class="pk-input-group"><label class="pk-label">Email</label><input class="pk-input" value="'+esc(profile.email)+'" disabled></div>'+
+        '<button type="submit" class="pk-btn pk-btn-primary w-full">Save Changes</button>'+
+      '</form>'+
+      '<div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--pk-border);display:flex;justify-content:space-between;">'+
+        '<a href="/pages/orders.html" class="pk-btn pk-btn-outline pk-btn-sm">📦 My Orders</a>'+
+        '<button class="pk-btn pk-btn-ghost pk-btn-sm" onclick="signOut()" style="color:var(--pk-danger);">Sign Out</button>'+
+      '</div>';
+    document.getElementById('profile-form').addEventListener('submit',async function(e){
+      e.preventDefault();var fd=new FormData(this);
+      var result=await db.from('profiles').update({full_name:fd.get('full_name'),phone:fd.get('phone')}).eq('id',user.id);
+      if(result.error){showToast('Error: '+result.error.message,'error');}else{showToast('Profile updated!','success');}
+    });
+  });
+  </script>
+</body>
+</html>

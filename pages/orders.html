@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders — Pickora</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+</head>
+<body>
+  <header class="pk-header" id="navbar"></header>
+  <main style="padding:100px 0 48px;">
+    <div class="container">
+      <div style="margin-bottom:8px;"><span class="pk-pill pk-pill-navy">ORDERS</span></div>
+      <h1 style="font-size:1.8rem;font-weight:800;color:var(--pk-navy);margin-bottom:24px;">My Orders</h1>
+      <div id="orders-container" style="color:var(--pk-text-muted);text-align:center;padding:2rem;">Loading...</div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded',async function(){
+    if(!window.db)await new Promise(r=>setTimeout(r,300));
+    var user=await getUser();
+    if(!user){window.location.href='/pages/login.html?return=/pages/orders.html';return;}
+    var container=document.getElementById('orders-container');
+    var result=await db.from('orders').select('*, order_items(*)').eq('user_id',user.id).order('created_at',{ascending:false});
+    if(!result.data||!result.data.length){container.innerHTML='<div class="pk-empty"><div class="pk-empty-icon">📦</div><h3>No orders yet</h3><p>Start shopping to see your orders here.</p><a href="/pages/shop.html" class="pk-btn pk-btn-primary mt-2">Browse Products</a></div>';return;}
+    var statusMap={pending:'pk-status-pending',confirmed:'pk-status-confirmed',processing:'pk-status-pending',shipped:'pk-status-shipped',delivered:'pk-status-delivered',cancelled:'pk-status-cancelled',refunded:'pk-status-cancelled'};
+    var html='<div class="pk-table-wrap pk-card-flat"><table class="pk-table"><thead><tr><th>Order</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th>Payment</th></tr></thead><tbody>';
+    result.data.forEach(function(o){
+      var itemCount=(o.order_items||[]).reduce(function(s,i){return s+i.quantity;},0);
+      html+='<tr><td><strong>'+esc(o.order_number)+'</strong></td><td>'+formatDate(o.created_at)+'</td><td>'+itemCount+'</td><td>'+formatPrice(o.total)+'</td><td><span class="pk-status-badge '+(statusMap[o.status]||'')+'">'+esc(o.status)+'</span></td><td><span class="pk-status-badge '+(o.payment_status==='paid'?'pk-status-paid':'pk-status-pending')+'">'+esc(o.payment_status)+'</span></td></tr>';
+    });
+    html+='</tbody></table></div>';
+    container.innerHTML=html;
+  });
+  </script>
+</body>
+</html>

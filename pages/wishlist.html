@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wishlist — Pickora</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+</head>
+<body>
+  <header class="pk-header" id="navbar"></header>
+  <main style="padding:100px 0 48px;">
+    <div class="container">
+      <div style="margin-bottom:8px;"><span class="pk-pill pk-pill-navy">WISHLIST</span></div>
+      <h1 style="font-size:1.8rem;font-weight:800;color:var(--pk-navy);margin-bottom:24px;">My Wishlist</h1>
+      <div class="pk-product-grid" id="wishlist-grid"></div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded',async function(){
+    if(!window.db)await new Promise(r=>setTimeout(r,300));
+    var user=await getUser();
+    if(!user){window.location.href='/pages/login.html?return=/pages/wishlist.html';return;}
+    var items=await getWishlist();
+    var grid=document.getElementById('wishlist-grid');
+    if(!items.length){grid.innerHTML='<div class="pk-empty" style="grid-column:1/-1;"><div class="pk-empty-icon">♡</div><h3>Your wishlist is empty</h3><p>Save your favorite laptops here.</p><a href="/pages/shop.html" class="pk-btn pk-btn-primary">Browse Products</a></div>';return;}
+    var html='';items.forEach(function(item,i){var p=item.products;if(p){p.category_name=p.brand||'';html+=renderProductCard(p,i);}});grid.innerHTML=html;
+  });
+  </script>
+</body>
+</html>

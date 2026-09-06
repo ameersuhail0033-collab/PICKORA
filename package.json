@@ -1,0 +1,28 @@
+{
+  "name": "pickora-store",
+  "version": "1.0.0",
+  "description": "Pickora - Premium White-Label Laptop E-Commerce Platform",
+  "private": true,
+  "scripts": {
+    "generate-env": "node scripts/generate-env.js",
+    "build": "node scripts/generate-env.js",
+    "dev": "node scripts/generate-env.js && npx serve . -l 3000",
+    "start": "npx serve . -l 3000"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "ecommerce",
+    "laptops",
+    "white-label",
+    "supabase",
+    "nomad-payments"
+  ],
+  "author": "Pickora",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.6",
+    "supabase": "^2.116.0"
+  }
+}

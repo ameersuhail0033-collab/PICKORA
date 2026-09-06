@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice — {{store_name}}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f3ff;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f3ff;">
+    <tr>
+      <td align="center" style="padding:40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(38,26,102,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="padding:32px 40px;border-bottom:1px solid #f0edff;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    {{#if store_logo}}
+                    <img src="{{store_logo}}" alt="{{store_name}}" style="height:36px;">
+                    {{else}}
+                    <span style="font-size:24px;font-weight:800;color:#261A66;">{{store_name}}</span>
+                    {{/if}}
+                  </td>
+                  <td style="text-align:right;">
+                    <h2 style="color:#1A1040;margin:0;font-size:20px;">TAX INVOICE</h2>
+                    <p style="color:#8880A0;font-size:12px;margin:4px 0 0;">{{order_number}}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Invoice Info -->
+          <tr>
+            <td style="padding:24px 40px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td width="50%" style="vertical-align:top;">
+                    <p style="color:#8880A0;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px;">Bill To</p>
+                    <p style="color:#1A1040;font-size:14px;margin:0;line-height:1.5;">{{customer_name}}<br>{{billing_address}}</p>
+                  </td>
+                  <td width="50%" style="text-align:right;vertical-align:top;">
+                    <p style="color:#8880A0;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px;">Invoice Date</p>
+                    <p style="color:#1A1040;font-size:14px;margin:0;">{{order_date}}</p>
+                    <p style="color:#8880A0;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;margin:16px 0 4px;">Payment Method</p>
+                    <p style="color:#1A1040;font-size:14px;margin:0;">Credit / Debit Card</p>
+                    <p style="color:#8880A0;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;margin:16px 0 4px;">Payment Status</p>
+                    <p style="color:#10B981;font-size:14px;font-weight:600;margin:0;">Paid</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Items -->
+          <tr>
+            <td style="padding:0 40px 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #f0edff;border-radius:12px;overflow:hidden;">
+                <tr style="background-color:#261A66;">
+                  <td style="padding:10px 16px;color:#ffffff;font-size:12px;font-weight:600;">Item</td>
+                  <td style="padding:10px 16px;color:#ffffff;font-size:12px;font-weight:600;text-align:center;">Qty</td>
+                  <td style="padding:10px 16px;color:#ffffff;font-size:12px;font-weight:600;text-align:right;">Price</td>
+                  <td style="padding:10px 16px;color:#ffffff;font-size:12px;font-weight:600;text-align:right;">Total</td>
+                </tr>
+                {{items_html}}
+              </table>
+            </td>
+          </tr>
+
+          <!-- Totals -->
+          <tr>
+            <td style="padding:0 40px 32px;">
+              <table role="presentation" width="300" cellpadding="0" cellspacing="0" style="margin-left:auto;">
+                <tr>
+                  <td style="padding:6px 0;color:#4A4066;font-size:13px;">Subtotal</td>
+                  <td style="padding:6px 0;color:#4A4066;font-size:13px;text-align:right;">{{subtotal}}</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:#4A4066;font-size:13px;">Tax</td>
+                  <td style="padding:6px 0;color:#4A4066;font-size:13px;text-align:right;">{{tax}}</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;color:#4A4066;font-size:13px;">Shipping</td>
+                  <td style="padding:6px 0;color:#4A4066;font-size:13px;text-align:right;">{{shipping}}</td>
+                </tr>
+                <tr>
+                  <td style="padding:12px 0 0;color:#1A1040;font-size:18px;font-weight:800;border-top:2px solid #8B5CF6;">Amount Paid</td>
+                  <td style="padding:12px 0 0;color:#261A66;font-size:18px;font-weight:800;text-align:right;border-top:2px solid #8B5CF6;">{{total}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:24px 40px;background:#f8f7ff;border-top:1px solid #f0edff;text-align:center;">
+              <p style="color:#8880A0;font-size:11px;margin:0;line-height:1.6;">
+                This is a computer-generated invoice. For questions, contact <a href="mailto:{{support_email}}" style="color:#8B5CF6;">{{support_email}}</a><br>
+                © {{year}} {{store_name}}. All rights reserved.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

@@ -1,0 +1,16 @@
+node_modules/
+.env
+.env.local
+.env.*.local
+js/env.js
+.DS_Store
+Thumbs.db
+*.log
+.vercel/
+freebuff/
+*.tmp
+*.swp
+*.swo
+*~
+.freebuff/
+node_modules/

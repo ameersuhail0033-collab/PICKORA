@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loading... — Pickora</title>
+  <meta name="description" content="" id="meta-description">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/product.css">
+  <script type="application/ld+json" id="json-ld"></script>
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+</head>
+<body>
+  <header class="pk-header" id="navbar"></header>
+  <main class="pk-product-detail">
+    <div class="container">
+      <div class="pk-product-detail-shell" id="product-detail">
+        <div style="padding:60px;text-align:center;">
+          <div class="pk-skeleton" style="height:400px;border-radius:var(--radius-xl);"></div>
+        </div>
+      </div>
+      <div class="pk-product-tabs" id="product-tabs" style="display:none;">
+        <div class="pk-tab-nav">
+          <button class="pk-tab-btn active" data-tab="description">Description</button>
+          <button class="pk-tab-btn" data-tab="specs">Specifications</button>
+          <button class="pk-tab-btn" data-tab="reviews">Reviews</button>
+        </div>
+        <div class="pk-tab-content active" data-tab="description" id="tab-description"></div>
+        <div class="pk-tab-content" data-tab="specs" id="tab-specs"></div>
+        <div class="pk-tab-content" data-tab="reviews" id="tab-reviews"></div>
+      </div>
+      <section id="related-section" style="display:none;margin-top:48px;">
+        <div class="pk-section-header"><h2 class="pk-section-title">Related Products</h2></div>
+        <div class="pk-product-grid" id="related-products"></div>
+      </section>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script><script src="/js/products.js"></script>
+</body>
+</html>

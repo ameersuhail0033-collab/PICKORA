@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — Pickora</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/checkout.css">
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+</head>
+<body>
+  <header class="pk-header" id="navbar"></header>
+  <main class="pk-checkout-page">
+    <div class="container">
+      <div class="pk-checkout-shell">
+        <div class="pk-checkout-steps" id="checkout-steps">
+          <div class="pk-checkout-step active" data-step="1"><span class="pk-checkout-step-num">1</span><span>Shipping</span></div>
+          <div class="pk-checkout-step-connector"></div>
+          <div class="pk-checkout-step" data-step="2"><span class="pk-checkout-step-num">2</span><span>Payment</span></div>
+          <div class="pk-checkout-step-connector"></div>
+          <div class="pk-checkout-step" data-step="3"><span class="pk-checkout-step-num">3</span><span>Confirm</span></div>
+        </div>
+        <div class="pk-checkout-layout">
+          <div id="checkout-form-container">
+            <div class="pk-checkout-section" id="step-shipping">
+              <h3>📦 Shipping Information</h3>
+              <div class="pk-checkout-form-grid">
+                <div class="pk-input-group full-width"><label class="pk-label">Full Name *</label><input class="pk-input" name="shipping_name" required></div>
+                <div class="pk-input-group full-width"><label class="pk-label">Address *</label><input class="pk-input" name="shipping_address" required></div>
+                <div class="pk-input-group"><label class="pk-label">City *</label><input class="pk-input" name="shipping_city" required></div>
+                <div class="pk-input-group"><label class="pk-label">State</label><input class="pk-input" name="shipping_state"></div>
+                <div class="pk-input-group"><label class="pk-label">Postal Code</label><input class="pk-input" name="shipping_postal"></div>
+                <div class="pk-input-group"><label class="pk-label">Country *</label><select class="pk-select" name="shipping_country" required><option value="">Select</option><option value="AE">UAE</option><option value="SA">Saudi Arabia</option><option value="US">United States</option><option value="GB">UK</option></select></div>
+                <div class="pk-input-group full-width"><label class="pk-label">Phone</label><input class="pk-input" name="shipping_phone"></div>
+                <div class="pk-input-group full-width"><label class="pk-label">Notes</label><textarea class="pk-input pk-textarea" name="order_notes" rows="2"></textarea></div>
+              </div>
+              <div style="display:flex;justify-content:flex-end;margin-top:16px;"><button class="pk-btn pk-btn-primary" onclick="checkoutNextStep(1)">Continue to Payment →</button></div>
+            </div>
+            <div class="pk-checkout-section" id="step-payment" style="display:none;">
+              <h3>💳 Payment Method</h3>
+              <div style="padding:16px;background:var(--pk-surface);border-radius:var(--radius-md);border:1.5px solid var(--pk-violet);">
+                <div style="font-weight:600;">Credit / Debit Card</div>
+                <div style="font-size:0.85rem;color:var(--pk-text-muted);">Secure payment via Nomod</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:20px;">
+                <button class="pk-btn pk-btn-outline" onclick="checkoutPrevStep(2)">← Back</button>
+                <button class="pk-btn pk-btn-primary" onclick="checkoutNextStep(2)">Review Order →</button>
+              </div>
+            </div>
+            <div class="pk-checkout-section" id="step-confirm" style="display:none;">
+              <h3>✅ Review & Place Order</h3>
+              <div id="order-review"></div>
+              <div style="display:flex;justify-content:space-between;margin-top:20px;">
+                <button class="pk-btn pk-btn-outline" onclick="checkoutPrevStep(3)">← Back</button>
+                <button class="pk-btn pk-btn-violet pk-btn-lg" onclick="placeOrder()" id="place-order-btn">🚀 Place Order & Pay</button>
+              </div>
+            </div>
+            <div id="checkout-error" style="display:none;color:var(--pk-danger);margin-top:12px;font-size:0.88rem;"></div>
+          </div>
+          <div class="pk-checkout-summary"><div class="pk-checkout-summary-card" id="checkout-summary"></div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script><script src="/js/checkout.js"></script>
+</body>
+</html>

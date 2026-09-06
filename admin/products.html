@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Products — Admin — {{STORE_NAME}}</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="admin-sidebar" id="admin-sidebar"></aside>
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <h1>Products</h1>
+        <div class="admin-topbar-actions">
+          <button class="btn btn-primary" onclick="showProductForm()">+ Add Product</button>
+        </div>
+      </div>
+
+      <div class="admin-table-card glass-card">
+        <div class="admin-table-header">
+          <div class="admin-table-search">
+            <span>🔍</span>
+            <input type="text" id="product-search" placeholder="Search products..." oninput="searchProducts(this.value)">
+          </div>
+          <div style="display:flex;gap:0.5rem;">
+            <select class="form-select" id="category-filter" onchange="filterProductsByCategory(this.value)" style="padding:0.5rem 2rem 0.5rem 0.75rem;font-size:0.85rem;">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-container" style="border:none;border-radius:0;">
+          <table class="table">
+            <thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="products-tbody"><tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);">Loading...</td></tr></tbody>
+          </table>
+        </div>
+        <div id="products-pagination" style="padding:1rem;"></div>
+      </div>
+
+      <!-- Product Form Modal -->
+      <div class="modal-overlay" id="product-modal" style="display:none;">
+        <div class="modal-content glass-card" style="max-width:720px;max-height:90vh;overflow-y:auto;">
+          <div class="modal-header">
+            <h3 id="product-form-title">Add Product</h3>
+            <button class="modal-close" onclick="closeProductForm()">&times;</button>
+          </div>
+          <form id="product-form" onsubmit="saveProduct(event)">
+            <input type="hidden" name="id" id="pf-id">
+            <div class="checkout-form-grid">
+              <div class="form-group full-width"><label class="form-label">Name *</label><input class="form-input" name="name" id="pf-name" required></div>
+              <div class="form-group"><label class="form-label">Category</label><select class="form-select" name="category_id" id="pf-category"></select></div>
+              <div class="form-group"><label class="form-label">Brand</label><input class="form-input" name="brand" id="pf-brand"></div>
+              <div class="form-group"><label class="form-label">SKU</label><input class="form-input" name="sku" id="pf-sku"></div>
+              <div class="form-group"><label class="form-label">Price *</label><input class="form-input" type="number" step="0.01" name="price" id="pf-price" required></div>
+              <div class="form-group"><label class="form-label">Compare at Price</label><input class="form-input" type="number" step="0.01" name="compare_at_price" id="pf-compare"></div>
+              <div class="form-group"><label class="form-label">Cost Price</label><input class="form-input" type="number" step="0.01" name="cost_price" id="pf-cost"></div>
+              <div class="form-group"><label class="form-label">Stock *</label><input class="form-input" type="number" name="stock_quantity" id="pf-stock" required></div>
+              <div class="form-group"><label class="form-label">Weight (kg)</label><input class="form-input" type="number" step="0.01" name="weight" id="pf-weight"></div>
+              <div class="form-group full-width"><label class="form-label">Short Description</label><input class="form-input" name="short_description" id="pf-short"></div>
+              <div class="form-group full-width"><label class="form-label">Description</label><textarea class="form-textarea" name="description" id="pf-desc" rows="4"></textarea></div>
+              <div class="form-group full-width">
+                <label class="form-check"><input type="checkbox" name="is_active" id="pf-active" checked> Active</label>
+              </div>
+              <div class="form-group full-width">
+                <label class="form-check"><input type="checkbox" name="is_featured" id="pf-featured"> Featured</label>
+              </div>
+              <div class="form-group full-width">
+                <label class="form-check"><input type="checkbox" name="track_inventory" id="pf-track" checked> Track Inventory</label>
+              </div>
+            </div>
+            <div class="admin-form-actions">
+              <button type="button" class="btn btn-secondary" onclick="closeProductForm()">Cancel</button>
+              <button type="submit" class="btn btn-primary" id="pf-submit">Save Product</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script>
+  <script src="/js/admin.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',function(){initAdminSidebar('products');loadAdminProducts();});</script>
+</body>
+</html>
