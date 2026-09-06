@@ -44,9 +44,8 @@
     var nav = document.getElementById('navbar');
     if (!nav) return;
 
-    var logoHtml = logoUrl
-      ? '<img data-store="logo" src="' + esc(logoUrl) + '" alt="' + esc(brandName) + '">'
-      : '<span class="pk-header-logo-text">' + esc(brandName.split(' ')[0]) + '<span>' + esc(brandName.split(' ').slice(1).join(' ')) + '</span></span>';
+    var logoSrc = logoUrl || '/assets/images/pickora-logo.png';
+    var logoHtml = '<img data-store="logo" src="' + esc(logoSrc) + '" alt="' + esc(brandName) + '" style="height:36px;width:auto;">';
 
     var adminLink = isAdmin ? '<a href="/admin" class="pk-header-nav-link">Admin</a>' : '';
 
@@ -98,6 +97,8 @@
   window.renderFooter = async function renderFooter() {
     var settings = await getStoreSettings().catch(function () { return {}; });
     var brandName = (settings && settings.store_name) ? settings.store_name : CONFIG.storeName;
+    var logoUrl = (settings && settings.logo_url) ? settings.logo_url : '';
+    var logoSrc = logoUrl || '/assets/images/pickora-logo.png';
     var year = new Date().getFullYear();
     var footer = document.getElementById('footer');
     if (!footer) return;
@@ -106,7 +107,7 @@
       '<div class="pk-footer"><div class="container"><div class="pk-footer-shell">' +
         '<div class="pk-footer-grid">' +
           '<div class="pk-footer-brand">' +
-            '<a href="/" class="pk-header-logo"><span class="pk-header-logo-text">' + esc(brandName.split(' ')[0]) + '<span>' + esc(brandName.split(' ').slice(1).join(' ')) + '</span></span></a>' +
+            '<a href="/" class="pk-header-logo"><img src="' + esc(logoSrc) + '" alt="' + esc(brandName) + '" style="height:32px;width:auto;"></a>' +
             '<p>Premium refurbished and renewed laptops in the UAE. Quality-checked, warranty-backed, ready for work and study.</p>' +
             '<div class="pk-footer-social">' +
               '<a href="' + esc((settings && settings.social_facebook) || '#') + '" target="_blank" rel="noopener" aria-label="Facebook">f</a>' +
