@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmed — Pickora</title>
+  <link rel="icon" type="image/png" href="/assets/icons/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .success-page { padding: 100px 0 48px; min-height: 70vh; }
+    .success-container { max-width: 700px; margin: 0 auto; text-align: center; }
+
+    /* Success Icon */
+    .success-icon-wrap { margin: 0 auto 24px; width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #10B981, #34D399); display: flex; align-items: center; justify-content: center; animation: successPop 0.6s ease-out; box-shadow: 0 8px 32px rgba(16,185,129,0.3); }
+    .success-icon-wrap svg { width: 48px; height: 48px; color: #fff; }
+    @keyframes successPop { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
+
+    /* Progress Steps */
+    .progress-steps { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 32px; }
+    .progress-step { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--pk-text-muted); font-weight: 500; }
+    .progress-step.completed { color: var(--pk-success); }
+    .progress-step.active { color: var(--pk-violet); font-weight: 600; }
+    .progress-step-num { width: 32px; height: 32px; border-radius: 50%; border: 2px solid currentColor; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.82rem; }
+    .progress-step.completed .progress-step-num { background: var(--pk-success); border-color: var(--pk-success); color: #fff; }
+    .progress-step.active .progress-step-num { background: var(--pk-violet); border-color: var(--pk-violet); color: #fff; }
+    .progress-connector { width: 40px; height: 2px; background: var(--pk-border); margin: 0 8px; }
+
+    .success-title { font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 800; color: var(--pk-navy); margin-bottom: 12px; }
+    .success-title span { color: var(--pk-success); }
+    .success-subtitle { font-size: 1rem; color: var(--pk-text-secondary); margin-bottom: 32px; }
+    .success-subtitle strong { color: var(--pk-navy); }
+
+    /* Order Summary Card */
+    .success-card { background: var(--pk-surface); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow-md); text-align: left; margin-bottom: 32px; }
+    .success-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .success-card-title { font-size: 1.1rem; font-weight: 700; color: var(--pk-navy); }
+    .success-card-meta { font-size: 0.82rem; color: var(--pk-text-muted); }
+
+    /* Line Items */
+    .success-item { display: flex; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--pk-border); align-items: center; }
+    .success-item:last-child { border-bottom: none; }
+    .success-item-img { width: 70px; height: 60px; border-radius: var(--radius-md); background: var(--pk-bg); overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .success-item-img img { max-width: 100%; max-height: 100%; object-fit: contain; padding: 4px; }
+    .success-item-info { flex: 1; }
+    .success-item-name { font-weight: 600; font-size: 0.9rem; color: var(--pk-navy); }
+    .success-item-specs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+    .success-item-spec { padding: 2px 8px; background: var(--pk-bg); border-radius: 999px; font-size: 0.68rem; color: var(--pk-text-muted); }
+    .success-item-qty { font-size: 0.82rem; color: var(--pk-text-muted); }
+    .success-item-price { font-weight: 700; font-size: 0.9rem; color: var(--pk-navy); }
+
+    /* Summary Rows */
+    .summary-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.9rem; }
+    .summary-row .label { color: var(--pk-text-secondary); }
+    .summary-total { display: flex; justify-content: space-between; padding: 12px 0; margin-top: 8px; border-top: 2px solid var(--pk-border); font-weight: 800; font-size: 1.1rem; color: var(--pk-navy); }
+
+    /* Delivery & Address */
+    .success-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+    .success-info-box { padding: 16px; background: var(--pk-bg); border-radius: var(--radius-lg); }
+    .success-info-box h4 { font-size: 0.85rem; font-weight: 600; color: var(--pk-navy); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .success-info-box p { font-size: 0.82rem; color: var(--pk-text-secondary); line-height: 1.5; }
+
+    /* Buttons */
+    .success-actions { display: flex; gap: 16px; justify-content: center; margin-top: 32px; flex-wrap: wrap; }
+    .btn-track { padding: 14px 32px; background: var(--pk-violet); color: #fff; border: none; border-radius: 999px; font-size: 1rem; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; }
+    .btn-track:hover { background: #7c3aed; }
+    .btn-continue { padding: 14px 32px; background: transparent; color: var(--pk-navy); border: 2px solid var(--pk-border-strong); border-radius: 999px; font-size: 1rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+    .btn-continue:hover { border-color: var(--pk-violet); color: var(--pk-violet); }
+
+    /* Footer Note */
+    .success-note { margin-top: 24px; font-size: 0.85rem; color: var(--pk-text-muted); }
+    .success-note a { color: var(--pk-violet); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      .success-info-grid { grid-template-columns: 1fr; }
+      .success-actions { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+  <header class="pk-header" id="navbar"></header>
+
+  <main class="success-page">
+    <div class="container">
+      <div class="success-container">
+        <!-- Progress Steps -->
+        <div class="progress-steps">
+          <div class="progress-step completed"><span class="progress-step-num">&#10003;</span><span>Cart</span></div>
+          <div class="progress-connector"></div>
+          <div class="progress-step completed"><span class="progress-step-num">&#10003;</span><span>Checkout</span></div>
+          <div class="progress-connector"></div>
+          <div class="progress-step active"><span class="progress-step-num">3</span><span>Confirmation</span></div>
+        </div>
+
+        <!-- Success Icon -->
+        <div class="success-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+
+        <h1 class="success-title">Order <span>Confirmed!</span></h1>
+        <p class="success-subtitle">Thanks for shopping with Pickora — your order <strong id="order-number">#PK-00000</strong> is on its way.</p>
+
+        <!-- Order Summary -->
+        <div class="success-card" id="order-summary">
+          <div class="success-card-header">
+            <div class="success-card-title">Order Summary</div>
+            <div class="success-card-meta" id="order-meta">Order #PK-00000</div>
+          </div>
+          <div id="order-items"></div>
+          <hr style="border:none;border-top:1px solid var(--pk-border);margin:12px 0;">
+          <div class="summary-row"><span class="label">Subtotal</span><span id="sum-subtotal">AED 0.00</span></div>
+          <div class="summary-row"><span class="label">Delivery Fee</span><span id="sum-shipping">AED 0.00</span></div>
+          <div class="summary-total"><span>Total</span><span id="sum-total">AED 0.00</span></div>
+
+          <div class="success-info-grid">
+            <div class="success-info-box">
+              <h4>&#128666; Delivery Estimate</h4>
+              <p>Arriving in 2-4 business days.<br>We'll keep you updated with tracking information once your order ships.</p>
+            </div>
+            <div class="success-info-box">
+              <h4>&#128205; Shipping Address</h4>
+              <p id="shipping-address">Loading...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="success-actions">
+          <a href="/pages/account.html" class="btn-track">Track Your Order &rarr;</a>
+          <a href="/pages/shop.html" class="btn-continue">Continue Shopping</a>
+        </div>
+
+        <p class="success-note">A confirmation email has been sent to <strong id="confirm-email">your email</strong>.<br>Need help? <a href="/pages/contact.html">Contact Us</a></p>
+      </div>
+    </div>
+  </main>
+
+  <footer id="footer"></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/supabase.js"></script>
+  <script src="/js/settings.js"></script>
+  <script src="/js/components.js"></script>
+  <script>
+  (function() {
+    'use strict';
+    var db = window.db;
+
+    document.addEventListener('DOMContentLoaded', async function() {
+      if (!db) await new Promise(function(r) { setTimeout(r, 300); });
+
+      var params = new URLSearchParams(window.location.search);
+      var orderNumber = params.get('order');
+
+      if (!orderNumber) {
+        document.getElementById('order-items').innerHTML = '<p style="text-align:center;padding:20px;color:var(--pk-text-muted);">No order data found.</p>';
+        return;
+      }
+
+      // Load order from DB
+      var result = await db.from('orders').select('*, order_items(*, products(name, brand), product_variants(name))').eq('order_number', orderNumber).single();
+
+      if (result.error || !result.data) {
+        document.getElementById('order-items').innerHTML = '<p style="text-align:center;padding:20px;color:var(--pk-text-muted);">Order not found.</p>';
+        return;
+      }
+
+      var order = result.data;
+      document.getElementById('order-number').textContent = '#' + order.order_number;
+      document.getElementById('order-meta').textContent = 'Order #' + order.order_number + ' • Placed on ' + new Date(order.created_at).toLocaleDateString('en-AE', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+      // Render items
+      var itemsHtml = '';
+      (order.order_items || []).forEach(function(item) {
+        var specs = '';
+        if (item.product_variants && item.product_variants.name) {
+          item.product_variants.name.split('/').forEach(function(s) {
+            if (s.trim()) specs += '<span class="success-item-spec">' + s.trim() + '</span>';
+          });
+        }
+        itemsHtml += '<div class="success-item">' +
+          '<div class="success-item-img"><img src="/assets/placeholder-laptop.png" alt=""></div>' +
+          '<div class="success-item-info"><div class="success-item-name">' + esc(item.name || '') + '</div>' +
+          '<div class="success-item-specs">' + specs + '</div></div>' +
+          '<div class="success-item-qty">Qty: ' + item.quantity + '</div>' +
+          '<div class="success-item-price">' + formatPrice(item.total || item.price * item.quantity) + '</div></div>';
+      });
+      document.getElementById('order-items').innerHTML = itemsHtml;
+
+      // Summary
+      document.getElementById('sum-subtotal').textContent = formatPrice(order.subtotal || 0);
+      document.getElementById('sum-shipping').textContent = order.shipping > 0 ? formatPrice(order.shipping) : 'Free';
+      document.getElementById('sum-total').textContent = formatPrice(order.total || 0);
+
+      // Address
+      document.getElementById('shipping-address').innerHTML = esc(order.shipping_name || '') + '<br>' + esc(order.shipping_address || '') + '<br>' + esc(order.shipping_city || '') + ', ' + esc(order.shipping_state || '') + ', UAE';
+
+      // Email
+      var session = await getSession();
+      if (session && session.user) {
+        document.getElementById('confirm-email').textContent = session.user.email;
+      }
+    });
+
+    function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+  })();
+  </script>
+</body>
+</html>
