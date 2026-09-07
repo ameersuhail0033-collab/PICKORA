@@ -17,11 +17,7 @@ const fs = require('fs');
 const path = require('path');
 
 // IMPORTANT: Disable body parsing so we can access raw body for Svix verification
-export const config = {
-  api: { bodyParser: false },
-};
-
-module.exports = async function handler(req, res) {
+const handler = async function handler(req, res) {
   if (req.method !== 'POST') return errRes(res, 405, 'Method not allowed');
 
   try {
@@ -174,8 +170,8 @@ module.exports = async function handler(req, res) {
             .single();
 
           if (profile && profile.email) {
-            const settings = await db.from('store_settings').select('*').limit(1).single();
-            const store = settings.data || {};
+            const { data: settingsRows } = await db.from('store_settings').select('*').limit(1);
+            const store = (settingsRows && settingsRows.length > 0) ? settingsRows[0] : {};
             const siteUrl = process.env.PUBLIC_SITE_URL || 'https://pickoraonline.com';
 
             // Load email template
@@ -320,5 +316,11 @@ function escHtml(s) { return esc(s); }
 
 function formatPrice(amount) {
   var num = Number(amount) || 0;
-  return '$' + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return 'AED ' + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
+
+// Export handler and config for Vercel
+module.exports = handler;
+module.exports.config = {
+  api: { bodyParser: false },
+};

@@ -135,7 +135,7 @@
     document.getElementById('active-filters').innerHTML = '';
 
     var query = db.from('products')
-      .select('*, categories(name,slug), product_images(url,alt,sort_order,is_primary)', { count: 'exact' })
+      .select('*, categories(name,slug), product_images(url,alt,sort_order,is_primary), product_variants(id,price)', { count: 'exact' })
       .eq('is_active', true)
       .is('deleted_at', null);
 
@@ -268,7 +268,7 @@
         description: p.short_description || p.description,
         brand: { '@type': 'Brand', name: p.brand },
         offers: { '@type': 'Offer', price: p.price, priceCurrency: CONFIG.currency, availability: p.stock_quantity > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' },
-        image: p.product_images && p.product_images.length > 0 ? p.product_images[0].url : '',
+        image: p.product_images && p.product_images.length > 0 ? productImageUrl(p.product_images[0].url) : '',
         aggregateRating: p.review_count > 0 ? { '@type': 'AggregateRating', ratingValue: p.avg_rating, reviewCount: p.review_count } : undefined,
       });
     }
@@ -276,11 +276,12 @@
     // Gallery
     var images = p.product_images || [];
     images.sort(function (a, b) { return a.sort_order - b.sort_order; });
-    var mainImg = images.length > 0 ? images[0].url : 'https://picsum.photos/seed/' + p.slug + '/800/800';
+    var mainImg = images.length > 0 ? productImageUrl(images[0].url) : '';
 
     var thumbsHtml = '';
     images.forEach(function (img, i) {
-      thumbsHtml += '<div class="product-gallery-thumb ' + (i === 0 ? 'active' : '') + '" onclick="switchImage(\'' + esc(img.url) + '\',this)"><img src="' + esc(img.url) + '" alt="' + esc(img.alt || p.name) + '"></div>';
+      var fullUrl = productImageUrl(img.url);
+      thumbsHtml += '<div class="product-gallery-thumb ' + (i === 0 ? 'active' : '') + '" onclick="switchImage(\'' + esc(fullUrl) + '\',this)"><img src="' + esc(fullUrl) + '" alt="' + esc(img.alt || p.name) + '"></div>';
     });
     if (images.length <= 1) thumbsHtml = '';
 
@@ -453,7 +454,7 @@
 
   window.addProductToCart = async function () {
     var qty = parseInt(document.getElementById('qty-input').value) || 1;
-    var slug = window.location.pathname.split('/product/')[1];
+    var slug = window.location.pathname.split('/product/')[1] || getParam('slug');
     var result = await db.from('products').select('id').eq('slug', slug).single();
     if (result.data) {
       await addToCart(result.data.id, selectedVariantId, qty);

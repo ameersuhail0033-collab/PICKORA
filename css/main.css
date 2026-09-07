@@ -113,6 +113,8 @@ h1,h2,h3,h4,h5,h6 { line-height: 1.15; font-weight: 700; }
   --pk-text: #F0F2F5;
   --pk-text-secondary: #9CA3AF;
   --pk-text-muted: #6B7280;
+  --pk-heading: #FFFFFF;
+  --pk-navy: #FFFFFF;
   --pk-border: rgba(255,255,255,0.06);
   --pk-border-strong: rgba(255,255,255,0.10);
   --glass-bg: rgba(26,31,46,0.80);
@@ -221,6 +223,28 @@ h1,h2,h3,h4,h5,h6 { line-height: 1.15; font-weight: 700; }
   color: var(--pk-violet);
   background: rgba(139,92,246,0.04);
 }
+[data-theme="dark"] .pk-btn-outline {
+  border-color: rgba(255,255,255,0.25);
+  color: #F0F2F5;
+}
+[data-theme="dark"] .pk-btn-outline:hover {
+  border-color: var(--pk-violet);
+  color: var(--pk-violet);
+  background: rgba(139,92,246,0.12);
+}
+[data-theme="dark"] .pk-btn-outline:focus-visible {
+  border-color: var(--pk-violet);
+  color: var(--pk-violet);
+  outline-color: var(--pk-violet);
+}
+/* Dark mode: solid white-ish background buttons (primary, violet)
+   still render their label as dark navy so text is visible.
+   This fixes the "Sign In" nav button and the "SHOP LAPTOPS"
+   hero CTA appearing as blank white pills in dark mode. */
+[data-theme="dark"] .pk-btn-primary,
+[data-theme="dark"] .pk-btn-violet {
+  color: var(--pk-navy);
+}
 .pk-btn-ghost {
   background: transparent;
   color: var(--pk-text-secondary);
@@ -316,7 +340,8 @@ h1,h2,h3,h4,h5,h6 { line-height: 1.15; font-weight: 700; }
   transform: translateX(-50%);
   width: calc(100% - 48px);
   max-width: var(--container);
-  z-index: var(--z-sticky);
+  z-index: 1000;
+  isolation: isolate;
   background: var(--glass-bg-strong);
   backdrop-filter: var(--glass-blur-strong);
   -webkit-backdrop-filter: var(--glass-blur-strong);
@@ -498,6 +523,8 @@ h1,h2,h3,h4,h5,h6 { line-height: 1.15; font-weight: 700; }
   color: var(--pk-text-secondary);
   margin-bottom: 24px;
   width: fit-content;
+  position: relative;
+  z-index: 2;
 }
 .pk-hero-pill-dot {
   width: 6px;
@@ -513,6 +540,8 @@ h1,h2,h3,h4,h5,h6 { line-height: 1.15; font-weight: 700; }
   line-height: 1.05;
   margin-bottom: 16px;
   letter-spacing: -0.02em;
+  position: relative;
+  z-index: 2;
 }
 .pk-hero-title .pk-accent { color: var(--pk-violet); }
 .pk-hero-num {
@@ -520,6 +549,8 @@ h1,h2,h3,h4,h5,h6 { line-height: 1.15; font-weight: 700; }
   align-items: center;
   gap: 16px;
   margin-bottom: 20px;
+  position: relative;
+  z-index: 2;
 }
 .pk-hero-num-value {
   font-family: var(--font-display);
@@ -539,34 +570,82 @@ h1,h2,h3,h4,h5,h6 { line-height: 1.15; font-weight: 700; }
   max-width: 440px;
   line-height: 1.7;
   margin-bottom: 32px;
+  position: relative;
+  z-index: 2;
 }
 .pk-hero-cta {
   display: flex;
   gap: 12px;
   margin-bottom: 32px;
+  position: relative;
+  z-index: 2;
 }
 .pk-hero-image-area {
   position: absolute;
-  right: -20px;
-  bottom: -20px;
-  width: 55%;
+  right: -18px;
+  bottom: -18px;
+  width: 45%;
+  max-width: 420px;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
+  z-index: 1;
 }
 .pk-hero-image {
   width: 100%;
   max-width: 420px;
+  height: auto;
   object-fit: contain;
   filter: drop-shadow(0 20px 40px rgba(6,26,61,0.15));
+}
+.pk-hero-image-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hero-laptop-visual {
+  position: relative;
+  width: 320px;
+  height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.hero-laptop-screen {
+  width: 280px;
+  height: 180px;
+  background: linear-gradient(135deg, var(--pk-navy) 0%, #1a365d 100%);
+  border-radius: 12px 12px 0 0;
+  border: 3px solid #334155;
+  box-shadow: 0 0 30px rgba(139,92,246,0.2), inset 0 0 60px rgba(139,92,246,0.1);
+  position: relative;
+  overflow: hidden;
+}
+.hero-laptop-screen::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  background: linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(196,163,255,0.1) 50%, rgba(139,92,246,0.05) 100%);
+  border-radius: 6px;
+}
+.hero-laptop-base {
+  width: 320px;
+  height: 12px;
+  background: linear-gradient(180deg, #475569 0%, #334155 100%);
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 .pk-hero-social {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-top: auto;
+  position: relative;
+  z-index: 2;
 }
 .pk-hero-social-label { font-size: 0.8rem; color: var(--pk-text-muted); }
 .pk-hero-social-icon {
@@ -583,8 +662,80 @@ h1,h2,h3,h4,h5,h6 { line-height: 1.15; font-weight: 700; }
 }
 .pk-hero-social-icon:hover { background: var(--pk-violet); color: #fff; }
 
+/* Constrain the text column so it never flows into the
+   image zone. The Absolute-positioned image can never
+   overlap the headline/heading/CTA this way. */
+.pk-hero-main {
+  max-width: calc(100% - 80px);
+  padding-right: 18px;
+}
+.pk-hero-title,
+.pk-hero-subtitle,
+.pk-hero-cta,
+.pk-hero-num,
+.pk-hero-pill {
+  max-width: 100%;
+}
+
 /* Hero Right Panel — stacked cards */
 .pk-hero-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1 1 auto;
+}
+
+/* Brand grid */
+.pk-brand-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.pk-brand-card {
+  width: 188px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  background: var(--pk-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--pk-border);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+.pk-brand-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--pk-violet);
+}
+.pk-brand-card-img {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-lg);
+  object-fit: contain;
+  background: var(--pk-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--pk-violet);
+  overflow: hidden;
+}
+.pk-brand-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--pk-text);
+  margin-bottom: 4px;
+}
+.pk-brand-card-count {
+  font-size: 0.82rem;
+  color: var(--pk-text-muted);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -845,6 +996,14 @@ h1,h2,h3,h4,h5,h6 { line-height: 1.15; font-weight: 700; }
   font-weight: 800;
   color: var(--pk-navy);
 }
+.pk-price-from {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--pk-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 2px;
+}
 .pk-product-card-price .compare {
   text-decoration: line-through;
   color: var(--pk-text-muted);
@@ -875,9 +1034,10 @@ h1,h2,h3,h4,h5,h6 { line-height: 1.15; font-weight: 700; }
 .pk-bento-span-2 { grid-column: span 2; }
 
 /* ── BRAND CARDS ───────────────────────────────────────────── */
-.pk-brand-grid { display: flex; gap: 12px; flex-wrap: wrap; }
+.pk-brand-grid { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 .pk-brand-card {
-  flex: 1;
+  flex: 1 1 200px;
+  max-width: 320px;
   min-width: 140px;
   padding: 24px 20px;
   background: var(--pk-surface);
@@ -998,7 +1158,8 @@ h1,h2,h3,h4,h5,h6 { line-height: 1.15; font-weight: 700; }
   color: #fff;
   font-size: 0.9rem;
 }
-.pk-newsletter-form input::placeholder { color: rgba(255,255,255,0.5); }
+.pk-newsletter-form input::placeholder { color: rgba(255,255,255,0.55); }
+.pk-newsletter-form input:focus { border-color: rgba(255,255,255,0.5); box-shadow: 0 0 0 3px rgba(139,92,246,0.25); }
 
 /* ── FOOTER ────────────────────────────────────────────────── */
 .pk-footer {
@@ -1320,15 +1481,19 @@ h1,h2,h3,h4,h5,h6 { line-height: 1.15; font-weight: 700; }
 .font-display { font-family: var(--font-display); }
 .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* ── SCROLL REVEAL ─────────────────────────────────────────── */
-.pk-reveal { opacity: 0; transform: translateY(30px); transition: all 0.7s var(--ease-out); }
-.pk-reveal.pk-revealed { opacity: 1; transform: translateY(0); }
-.pk-reveal-left { opacity: 0; transform: translateX(-30px); transition: all 0.7s var(--ease-out); }
-.pk-reveal-left.pk-revealed { opacity: 1; transform: translateX(0); }
-.pk-reveal-right { opacity: 0; transform: translateX(30px); transition: all 0.7s var(--ease-out); }
-.pk-reveal-right.pk-revealed { opacity: 1; transform: translateX(0); }
-.pk-reveal-scale { opacity: 0; transform: scale(0.95); transition: all 0.7s var(--ease-out); }
-.pk-reveal-scale.pk-revealed { opacity: 1; transform: scale(1); }
+/* ── SCROLL REVEAL — Progressive Enhancement ──────────────── */
+/* Default: content visible. Motion-ready class hides pre-animation. */
+.pk-reveal, .pk-reveal-left, .pk-reveal-right, .pk-reveal-scale { transition: all 0.7s var(--ease-out); }
+html.motion-ready .pk-reveal:not([data-reveal-complete="true"]) { opacity: 0; transform: translateY(30px); }
+html.motion-ready .pk-reveal.pk-revealed { opacity: 1; transform: translateY(0); }
+html.motion-ready .pk-reveal-left:not([data-reveal-complete="true"]) { opacity: 0; transform: translateX(-30px); }
+html.motion-ready .pk-reveal-left.pk-revealed { opacity: 1; transform: translateX(0); }
+html.motion-ready .pk-reveal-right:not([data-reveal-complete="true"]) { opacity: 0; transform: translateX(30px); }
+html.motion-ready .pk-reveal-right.pk-revealed { opacity: 1; transform: translateX(0); }
+html.motion-ready .pk-reveal-scale:not([data-reveal-complete="true"]) { opacity: 0; transform: scale(0.95); }
+html.motion-ready .pk-reveal-scale.pk-revealed { opacity: 1; transform: scale(1); }
+/* Fail-safe: elements with data-reveal-complete always visible */
+[data-reveal-complete="true"] { opacity: 1 !important; transform: none !important; }
 
 /* ── RESPONSIVE ────────────────────────────────────────────── */
 @media (max-width: 1200px) {
@@ -1341,7 +1506,7 @@ h1,h2,h3,h4,h5,h6 { line-height: 1.15; font-weight: 700; }
   .pk-hero-shell { grid-template-columns: 1fr; min-height: auto; }
   .pk-hero-side { flex-direction: row; overflow-x: auto; padding: 12px; }
   .pk-hero-side-card { min-width: 200px; flex: none; }
-  .pk-hero-image-area { position: static; width: 100%; height: 300px; }
+  .pk-hero-image-area { position: static; width: 100%; height: 200px; display: flex; align-items: center; justify-content: center; }
   .pk-bottom-cards { grid-template-columns: 1fr 1fr; }
   .pk-footer-grid { grid-template-columns: 1fr 1fr; }
   .pk-trust-grid { grid-template-columns: 1fr 1fr; }
@@ -1434,4 +1599,279 @@ textarea:focus-visible,
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
+}
+
+/* =============================================================
+   MOTION SYSTEM — Split Reveal, Wave Reveal, Sibling Focus
+   ============================================================= */
+
+/* ── Split Reveal ────────────────────────────────────────────── */
+.pk-split-reveal {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  pointer-events: none;
+}
+.pk-split-top,
+.pk-split-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: var(--pk-navy);
+  transition: transform 0.9s cubic-bezier(0.76, 0, 0.24, 1);
+  will-change: transform;
+}
+.pk-split-top { top: 0; }
+.pk-split-bottom { bottom: 0; }
+.pk-split-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #fff;
+  z-index: 1;
+}
+.pk-split-logo {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  margin-bottom: 16px;
+}
+.pk-split-loader {
+  width: 40px;
+  height: 3px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 2px;
+  margin: 0 auto;
+  overflow: hidden;
+  position: relative;
+}
+.pk-split-loader::after {
+  content: '';
+  position: absolute;
+  left: -40px;
+  top: 0;
+  width: 40px;
+  height: 100%;
+  background: var(--pk-violet);
+  border-radius: 2px;
+  animation: pk-split-loader-slide 1s ease-in-out infinite;
+}
+@keyframes pk-split-loader-slide {
+  0% { left: -40px; }
+  100% { left: 40px; }
+}
+
+/* ── Wave Reveal ─────────────────────────────────────────────── */
+.pk-wave-reveal {
+  display: inline-block;
+}
+.pk-wave-segment {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+.pk-wave-inner {
+  display: block;
+  will-change: transform, opacity, filter;
+}
+
+/* ── Sibling Focus Navigation ────────────────────────────────── */
+.pk-nav-sibling {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pk-nav-sibling > a,
+.pk-nav-sibling > button {
+  transition: opacity 0.2s ease-out;
+}
+/* CSS :has() — dim siblings on hover */
+.pk-nav-sibling:has(> a:hover) > a:not(:hover),
+.pk-nav-sibling:has(> button:hover) > button:not(:hover) {
+  opacity: 0.30;
+}
+/* CSS :has() — dim siblings on focus-visible */
+.pk-nav-sibling:has(> a:focus-visible) > a:not(:focus-visible),
+.pk-nav-sibling:has(> button:focus-visible) > button:not(:focus-visible) {
+  opacity: 0.30;
+}
+/* JS fallback class for browsers without :has() */
+.pk-sibling-dim > a:not(.pk-sibling-active),
+.pk-sibling-dim > button:not(.pk-sibling-active) {
+  opacity: 0.30;
+}
+.pk-sibling-dim .pk-sibling-active {
+  opacity: 1;
+}
+
+/* ── Button Micro-Interactions ───────────────────────────────── */
+.pk-btn {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.16s ease-out, box-shadow 0.3s ease;
+}
+.pk-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.pk-btn .pk-btn-arrow {
+  display: inline-block;
+  transition: transform 0.3s var(--ease-out);
+}
+.pk-btn:hover .pk-btn-arrow {
+  transform: translateX(4px);
+}
+.pk-btn:focus-visible {
+  outline: 2px solid var(--pk-violet);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
+}
+
+/* ── Image Reveal ────────────────────────────────────────────── */
+.pk-img-reveal {
+  overflow: hidden;
+}
+.pk-img-reveal img {
+  transform: scale(1.04);
+  opacity: 0;
+  transition: transform 0.9s var(--ease-out), opacity 0.9s ease;
+}
+.pk-img-reveal.pk-img-revealed img {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* ── Header scroll state ─────────────────────────────────────── */
+.pk-header.scrolled {
+  background: var(--glass-bg-strong) !important;
+  box-shadow: 0 2px 20px rgba(6,26,61,0.08);
+}
+
+/* ── Card motion enhancements ────────────────────────────────── */
+.pk-product-card {
+  transition: transform 0.35s var(--ease-out), box-shadow 0.35s ease;
+}
+.pk-product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card-hover);
+}
+.pk-product-card:hover .pk-product-card-img img,
+.pk-product-card:hover .pk-product-img img {
+  transform: scale(1.035);
+}
+.pk-product-card-img img,
+.pk-product-img img {
+  transition: transform 0.5s var(--ease-out);
+}
+.pk-hero-side-card,
+.pk-bottom-card,
+.pk-trust-card,
+.pk-testimonial-card {
+  transition: transform 0.35s var(--ease-out), box-shadow 0.35s ease, background 0.3s ease;
+}
+.pk-hero-side-card:hover,
+.pk-bottom-card:hover,
+.pk-trust-card:hover,
+.pk-testimonial-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+}
+.pk-brand-card {
+  transition: transform 0.35s var(--ease-out), box-shadow 0.35s ease;
+}
+.pk-brand-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* ── Reduced Motion ──────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .pk-split-top,
+  .pk-split-bottom {
+    transition: none !important;
+  }
+  .pk-wave-inner {
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+  .pk-btn:active:not(:disabled) {
+    transform: none;
+  }
+  .pk-product-card:hover,
+  .pk-hero-side-card:hover,
+  .pk-bottom-card:hover,
+  .pk-trust-card:hover,
+  .pk-testimonial-card:hover,
+  .pk-brand-card:hover {
+    transform: none;
+  }
+  .pk-product-card:hover .pk-product-card-img img,
+  .pk-product-card:hover .pk-product-img img {
+    transform: none;
+  }
+  .pk-img-reveal img {
+    transition: none !important;
+    transform: none;
+    opacity: 1;
+  }
+  .pk-nav-sibling > a,
+  .pk-nav-sibling > button {
+    transition: none !important;
+  }
+}
+
+/* ── Dark Mode Adjustments ───────────────────────────────────── */
+[data-theme="dark"] .pk-hero-fallback {
+  background: linear-gradient(135deg, #031126 0%, #061A3D 30%, #8B5CF6 60%, #C4A3FF 100%) !important;
+}
+[data-theme="dark"] .pk-split-top,
+[data-theme="dark"] .pk-split-bottom {
+  background: #031126;
+}
+[data-theme="dark"] .pk-header.scrolled {
+  background: rgba(6, 26, 61, 0.92) !important;
+}
+/* Dark mode heading/text colors — override hardcoded --pk-navy */
+[data-theme="dark"] .pk-hero-title,
+[data-theme="dark"] .pk-hero-num-value,
+[data-theme="dark"] .pk-hero-side-card-title,
+[data-theme="dark"] .pk-bottom-card-title,
+[data-theme="dark"] .pk-bottom-card-stat,
+[data-theme="dark"] .pk-section-title,
+[data-theme="dark"] .pk-empty h3,
+[data-theme="dark"] .pk-faq-question,
+[data-theme="dark"] .pk-trust-stat,
+[data-theme="dark"] .pk-product-card-title,
+[data-theme="dark"] .pk-product-card-price,
+[data-theme="dark"] .pk-footer-col h5 {
+  color: var(--pk-text);
+}
+[data-theme="dark"] .pk-hero-side-card {
+  background: var(--pk-bg-alt);
+}
+[data-theme="dark"] .pk-bottom-card {
+  background: var(--pk-surface);
+}
+[data-theme="dark"] .pk-hero-pill {
+  background: rgba(255,255,255,0.06);
+  color: var(--pk-text-secondary);
+}
+[data-theme="dark"] .pk-header-logo-text {
+  color: #F0F2F5;
+}
+[data-theme="dark"] .pk-page-btn:hover:not(:disabled) {
+  background: var(--pk-violet);
+  border-color: var(--pk-violet);
+}
+[data-theme="dark"] .pk-page-btn.active {
+  background: var(--pk-violet);
+  border-color: var(--pk-violet);
+}
+[data-theme="dark"] .pk-product-card-add {
+  background: var(--pk-violet);
 }

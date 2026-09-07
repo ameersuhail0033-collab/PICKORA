@@ -46,6 +46,15 @@ module.exports = async function handler(req, res) {
       return errRes(res, 401, 'Invalid token');
     }
 
+    // Nomod requires a customer phone number on hosted checkout sessions.
+    // The phone is user-provided contact info (NOT price data), so it may
+    // come from the request body; it is validated server-side before use.
+    const customerPhone = String((req.body && req.body.customer_phone) || '').trim();
+    const PHONE_RE = /^\+?[0-9][0-9\s\-()]{6,19}$/;
+    if (!PHONE_RE.test(customerPhone)) {
+      return errRes(res, 400, 'A valid customer phone number is required');
+    }
+
     // ── Step 2: Re-read the order from DB (server-side source of truth) ──
     const { data: order, error: orderError } = await db
       .from('orders')
@@ -118,6 +127,7 @@ module.exports = async function handler(req, res) {
         first_name: (order.shipping_name || '').split(' ')[0] || '',
         last_name: (order.shipping_name || '').split(' ').slice(1).join(' ') || '',
         email: user.email || '',
+        phone: customerPhone,
       },
       successUrl: `${siteUrl}/pages/checkout.html?payment=success&order=${order.order_number}`,
       failureUrl: `${siteUrl}/pages/checkout.html?payment=failed&order=${order.order_number}`,

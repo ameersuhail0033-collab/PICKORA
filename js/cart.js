@@ -1,166 +1,179 @@
 /**
- * cart.js — Cart page logic
- * Displays cart items, quantity controls, coupon, and summary.
+ * cart.js — Cart page logic (v2)
+ * Displays cart items, quantity controls, promo code, and order summary.
  */
 (function () {
   'use strict';
 
   var cartData = [];
+  var discount = 0;
+  var promoApplied = false;
 
   document.addEventListener('DOMContentLoaded', async function () {
     if (!window.db) await new Promise(function (r) { setTimeout(r, 300); });
-    if (!document.getElementById('cart-items-list')) return;
+    if (!document.getElementById('cart-items')) return;
     await loadCartPage();
   });
 
   async function loadCartPage() {
     cartData = await getCart();
-    renderCartItems();
-    renderCartSummary();
+    renderCart();
   }
 
-  async function renderCartItems() {
-    var container = document.getElementById('cart-items-list');
-    if (!container) return;
+  function renderCart() {
+    var itemsContainer = document.getElementById('cart-items');
+    var summaryContainer = document.getElementById('order-summary');
+    var emptyState = document.getElementById('cart-empty-state');
+    var layout = document.getElementById('cart-layout');
+    var countText = document.getElementById('cart-count-text');
 
-    if (!cartData || cartData.length === 0) {
-      container.innerHTML = '';
-      document.querySelector('.cart-items-header').style.display = 'none';
-      document.getElementById('cart-summary-card').innerHTML = '<div class="cart-empty"><div class="cart-empty-icon">🛒</div><h3>Your cart is empty</h3><p>Add some laptops!</p><a href="/pages/shop.html" class="btn btn-primary mt-2">Start Shopping</a></div>';
+    var validItems = (cartData || []).filter(function (item) {
+      return item.products && item.products.is_active;
+    });
+
+    if (validItems.length === 0) {
+      emptyState.style.display = '';
+      layout.style.display = 'none';
+      countText.textContent = 'Your cart is empty';
       return;
     }
 
-    document.querySelector('.cart-items-header').style.display = '';
+    emptyState.style.display = 'none';
+    layout.style.display = '';
+    countText.textContent = validItems.length + ' item' + (validItems.length !== 1 ? 's' : '') + ' in your cart';
+
+    renderItems(validItems);
+    renderSummary(validItems);
+  }
+
+  async function renderItems(items) {
+    var container = document.getElementById('cart-items');
     var html = '';
-    for (var i = 0; i < cartData.length; i++) {
-      var item = cartData[i];
+
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
       var product = item.products;
       var variant = item.product_variants;
 
-      if (!product || !product.is_active) continue;
-
-      var imgUrl = 'https://picsum.photos/seed/product/120/120';
-      // Get primary image
+      // Get image
+      var imgUrl = '/assets/placeholder-laptop.png';
       var imgResult = await db.from('product_images').select('url').eq('product_id', product.id).eq('is_primary', true).limit(1);
-      if (imgResult.data && imgResult.data.length > 0) imgUrl = imgResult.data[0].url;
+      if (imgResult.data && imgResult.data.length > 0) {
+        imgUrl = productImageUrl(imgResult.data[0].url);
+      }
 
       var unitPrice = variant ? variant.price : product.price;
       var total = unitPrice * item.quantity;
 
-      html += '<div class="cart-item" data-id="' + esc(item.id) + '">' +
-        '<div class="cart-item-product">' +
-          '<div class="cart-item-img"><img src="' + esc(imgUrl) + '" alt="' + esc(product.name) + '"></div>' +
-          '<div><div class="cart-item-name">' + esc(product.name) + '</div>' +
-          (variant ? '<div class="cart-item-variant">' + esc(variant.name) + '</div>' : '') +
+      // Build spec chips
+      var specs = '';
+      if (variant && variant.name) {
+        var parts = variant.name.split('/').map(function(s) { return s.trim(); });
+        parts.forEach(function(p) { if (p) specs += '<span class="cart-item-spec">' + esc(p) + '</span>'; });
+      }
+      if (product.brand) specs = '<span class="cart-item-spec">' + esc(product.brand) + '</span>' + specs;
+
+      html += '<div class="cart-item-card" data-id="' + esc(item.id) + '">' +
+        '<div class="cart-item-img"><img src="' + esc(imgUrl) + '" alt="' + esc(product.name) + '" onerror="this.src=\'/assets/placeholder-laptop.png\'"></div>' +
+        '<div class="cart-item-info">' +
+          '<div class="cart-item-brand">' + esc(product.brand || '') + '</div>' +
+          '<div class="cart-item-name">' + esc(product.name) + '</div>' +
+          '<div class="cart-item-specs">' + specs + '</div>' +
+          '<div class="cart-item-qty-price">' +
+            '<div class="qty-stepper">' +
+              '<button class="qty-btn" onclick="updateCartQty(\'' + esc(item.id) + '\',' + (item.quantity - 1) + ')" ' + (item.quantity <= 1 ? 'disabled' : '') + '>&minus;</button>' +
+              '<span class="qty-val">' + item.quantity + '</span>' +
+              '<button class="qty-btn" onclick="updateCartQty(\'' + esc(item.id) + '\',' + (item.quantity + 1) + ')">+</button>' +
+            '</div>' +
           '</div>' +
         '</div>' +
-        '<div class="cart-item-price">' + formatPrice(unitPrice) + '</div>' +
-        '<div class="cart-item-qty">' +
-          '<div class="quantity-selector">' +
-            '<button onclick="updateCartQty(\'' + esc(item.id) + '\',' + (item.quantity - 1) + ')">−</button>' +
-            '<input type="number" value="' + item.quantity + '" min="1" readonly>' +
-            '<button onclick="updateCartQty(\'' + esc(item.id) + '\',' + (item.quantity + 1) + ')">+</button>' +
-          '</div>' +
+        '<div class="cart-item-pricing">' +
+          '<div class="cart-item-unit">' + formatPrice(unitPrice) + ' each</div>' +
+          '<div class="cart-item-total">' + formatPrice(total) + '</div>' +
         '</div>' +
-        '<div class="cart-item-total">' + formatPrice(total) + '</div>' +
-        '<button class="cart-item-remove" onclick="removeCartItem(\'' + esc(item.id) + '\')" title="Remove">✕</button>' +
+        '<button class="cart-item-remove" onclick="removeCartItem(\'' + esc(item.id) + '\')" title="Remove item">&#128465;</button>' +
       '</div>';
     }
 
     container.innerHTML = html;
   }
 
-  async function renderCartSummary() {
-    var card = document.getElementById('cart-summary-card');
-    if (!card) return;
-
+  function renderSummary(items) {
+    var container = document.getElementById('order-summary');
     var subtotal = 0;
-    for (var i = 0; i < cartData.length; i++) {
-      var item = cartData[i];
+    var itemCount = 0;
+
+    items.forEach(function (item) {
       var product = item.products;
       var variant = item.product_variants;
-      if (product && product.is_active) {
-        var price = variant ? variant.price : product.price;
-        subtotal += price * item.quantity;
-      }
+      var price = variant ? variant.price : product.price;
+      subtotal += price * item.quantity;
+      itemCount += item.quantity;
+    });
+
+    var shipping = subtotal >= 500 ? 0 : 50;
+    var total = subtotal + shipping - discount;
+
+    var html = '<h3>Order Summary</h3>' +
+      '<div class="summary-row"><span class="label">Subtotal (' + itemCount + ' item' + (itemCount !== 1 ? 's' : '') + ')</span><span class="value">' + formatPrice(subtotal) + '</span></div>' +
+      '<div class="summary-row"><span class="label">Estimated Shipping</span><span class="value">' + (shipping === 0 ? 'Free' : formatPrice(shipping)) + '</span></div>';
+
+    if (discount > 0) {
+      html += '<div class="summary-row"><span class="label">Discount</span><span class="value" style="color:#10B981;">-' + formatPrice(discount) + '</span></div>';
     }
 
-    var settings = await getStoreSettings().catch(function () { return {}; });
-    var taxRate = (settings && settings.tax_rate) ? parseFloat(settings.tax_rate) : 0;
-    var shippingCost = (settings && settings.shipping_cost) ? parseFloat(settings.shipping_cost) : 0;
-    var freeShippingThreshold = (settings && settings.free_shipping_threshold) ? parseFloat(settings.free_shipping_threshold) : 0;
-    var tax = Math.round(subtotal * taxRate / 100 * 100) / 100;
-    var shipping = (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold) ? 0 : shippingCost;
-    var total = subtotal + tax + shipping;
-
-    card.innerHTML =
-      '<h3>Order Summary</h3>' +
-      '<div class="cart-summary-row"><span class="label">Subtotal</span><span>' + formatPrice(subtotal) + '</span></div>' +
-      '<div class="cart-summary-row"><span class="label">Tax (' + taxRate + '%)</span><span>' + formatPrice(tax) + '</span></div>' +
-      '<div class="cart-summary-row"><span class="label">Shipping</span><span>' + (shipping > 0 ? formatPrice(shipping) : '<span style="color:#10B981;">Free</span>') + '</span></div>' +
-      '<div id="discount-row" style="display:none;" class="cart-summary-row"><span class="label" style="color:#10B981;">Discount</span><span id="discount-amount" style="color:#10B981;">-$0.00</span></div>' +
-      '<div class="cart-summary-total"><span>Total</span><span id="cart-total">' + formatPrice(total) + '</span></div>' +
-      '<div class="cart-coupon">' +
-        '<input type="text" id="coupon-input" placeholder="Coupon code">' +
-        '<button class="btn btn-secondary btn-sm" onclick="applyCoupon()">Apply</button>' +
+    html += '<hr class="summary-divider">' +
+      '<div class="summary-total"><span>Total</span><span>' + formatPrice(total) + '</span></div>' +
+      '<div class="promo-row">' +
+        '<input type="text" class="promo-input" placeholder="Enter promo code" id="promo-input">' +
+        '<button class="promo-btn" onclick="applyPromo()">Apply</button>' +
       '</div>' +
-      '<div id="coupon-message" style="display:none;margin-bottom:1rem;font-size:0.85rem;"></div>' +
-      '<a href="/pages/checkout.html" class="btn btn-accent w-full" style="font-size:1rem;">Proceed to Checkout</a>' +
-      '<a href="/pages/shop.html" class="cart-continue-shopping">← Continue Shopping</a>' +
-      (freeShippingThreshold > 0 && subtotal < freeShippingThreshold
-        ? '<p style="text-align:center;font-size:0.8rem;color:var(--text-muted);margin-top:0.75rem;">Add ' + formatPrice(freeShippingThreshold - subtotal) + ' more for free shipping!</p>'
-        : '');
+      '<a href="/pages/checkout.html" class="checkout-btn" id="checkout-btn">Proceed to Checkout &rarr;</a>' +
+      '<div class="trust-row">' +
+        '<div class="trust-item"><i class="fas fa-shield-alt"></i><div>12-Month<br>Warranty</div></div>' +
+        '<div class="trust-item"><i class="fas fa-truck"></i><div>2-4 Day<br>UAE Delivery</div></div>' +
+      '</div>';
 
-    // Store for coupon
-    window._cartSubtotal = subtotal;
-    window._cartTax = tax;
-    window._cartShipping = shipping;
+    container.innerHTML = html;
   }
 
   window.updateCartQty = async function (itemId, newQty) {
-    if (newQty <= 0) {
-      await removeFromCart(itemId);
-    } else {
-      var user = await getUser();
-      if (user) {
-        await db.from('cart_items').update({ quantity: newQty }).eq('id', itemId);
-      } else {
-        var cart = JSON.parse(localStorage.getItem('pickora_cart') || '[]');
-        var idx = cart.findIndex(function (c) { return c.product_id === itemId; });
-        if (idx > -1) cart[idx].quantity = newQty;
-        localStorage.setItem('pickora_cart', JSON.stringify(cart));
-      }
+    if (newQty < 1) {
+      await removeCartItem(itemId);
+      return;
     }
-    await loadCartPage();
+    await updateCartItem(itemId, newQty);
+    cartData = await getCart();
+    renderCart();
   };
 
   window.removeCartItem = async function (itemId) {
-    var ok = await confirmDialog('Remove this item from cart?');
-    if (!ok) return;
     await removeFromCart(itemId);
-    await loadCartPage();
-    showToast('Item removed', 'info');
+    cartData = await getCart();
+    renderCart();
   };
 
-  window.applyCoupon = async function () {
-    var code = document.getElementById('coupon-input').value.trim();
+  window.applyPromo = function () {
+    var input = document.getElementById('promo-input');
+    var code = input ? input.value.trim().toUpperCase() : '';
     if (!code) return;
-    var result = await db.rpc('validate_coupon', { p_code: code, p_total: window._cartSubtotal || 0 });
-    var msgEl = document.getElementById('coupon-message');
-    if (result.error || !result.data || !result.data.valid) {
-      msgEl.style.display = 'block';
-      msgEl.style.color = '#EF4444';
-      msgEl.textContent = (result.data && result.data.error) || 'Invalid coupon';
+
+    // Simulated promo validation
+    if (code === 'PICKORA10') {
+      discount = 10;
+      promoApplied = true;
+      alert('Promo code applied! AED 10 discount.');
+    } else if (code === 'WELCOME20') {
+      discount = 20;
+      promoApplied = true;
+      alert('Promo code applied! AED 20 discount.');
     } else {
-      msgEl.style.display = 'block';
-      msgEl.style.color = '#10B981';
-      msgEl.textContent = 'Coupon applied! You save ' + formatPrice(result.data.discount_amount);
-      document.getElementById('discount-row').style.display = '';
-      document.getElementById('discount-amount').textContent = '-' + formatPrice(result.data.discount_amount);
-      var newTotal = (window._cartSubtotal || 0) + (window._cartTax || 0) + (window._cartShipping || 0) - result.data.discount_amount;
-      document.getElementById('cart-total').textContent = formatPrice(Math.max(0, newTotal));
-      window._cartDiscount = result.data.discount_amount;
-      window._couponId = result.data.coupon_id;
+      alert('Invalid promo code.');
+      return;
     }
+    renderCart();
   };
+
+  function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
 })();
