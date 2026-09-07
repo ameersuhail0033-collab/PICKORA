@@ -7,6 +7,7 @@ js/env.js
 Thumbs.db
 *.log
 .vercel/
+supabase/.temp/
 freebuff/
 *.tmp
 *.swp
@@ -14,3 +15,6 @@ freebuff/
 *~
 .freebuff/
 node_modules/
+
+# Import data (CSV + images) — never commit
+import-data/

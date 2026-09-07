@@ -24,14 +24,30 @@ ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own profile"
   ON profiles FOR SELECT USING (id = auth.uid());
 
-CREATE POLICY "Users can update own profile"
-  ON profiles FOR UPDATE USING (id = auth.uid());
+-- SECURITY: customers may update their own profile but NEVER the role column
+-- (self-promotion is a critical vulnerability). Role changes go through the
+-- admin_set_user_role() RPC or the service role.
+CREATE POLICY "Users can update own profile (not role)"
+  ON profiles FOR UPDATE
+  USING (id = auth.uid())
+  WITH CHECK (
+    id = auth.uid()
+    AND role = (SELECT role FROM profiles WHERE id = auth.uid())
+  );
 
 CREATE POLICY "Admins can view all profiles"
   ON profiles FOR SELECT USING (is_admin());
 
-CREATE POLICY "Admins can update any profile"
-  ON profiles FOR UPDATE USING (is_admin());
+-- Admins may edit other profiles' data, but changing their OWN role is
+-- reserved for the service role / admin_set_user_role() RPC.
+CREATE POLICY "Admins can update all profiles (not own role)"
+  ON profiles FOR UPDATE
+  USING (is_admin())
+  WITH CHECK (
+    is_admin()
+    AND (id <> auth.uid()
+         OR role = (SELECT role FROM profiles WHERE id = auth.uid()))
+  );
 
 CREATE POLICY "Insert own profile on signup"
   ON profiles FOR INSERT WITH CHECK (id = auth.uid());
@@ -40,15 +56,11 @@ CREATE POLICY "Insert own profile on signup"
 CREATE POLICY "Anyone can read store_settings"
   ON store_settings FOR SELECT USING (true);
 
+CREATE POLICY "Admins can insert store_settings"
+  ON store_settings FOR INSERT WITH CHECK (is_admin());
+
 CREATE POLICY "Admins can update store_settings"
   ON store_settings FOR UPDATE USING (is_admin());
-
-CREATE POLICY "Allow first insert when empty"
-  ON store_settings FOR INSERT
-  WITH CHECK (
-    NOT EXISTS (SELECT 1 FROM store_settings)
-    OR is_admin()
-  );
 
 -- ── categories ───────────────────────────────────────────────
 CREATE POLICY "Anyone can read active categories"
@@ -121,9 +133,13 @@ CREATE POLICY "Users can view own orders"
 CREATE POLICY "Users can create own orders"
   ON orders FOR INSERT WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "Users can update own orders (limited)"
+-- SECURITY: customers can update operational fields on their own orders but
+-- NEVER payment_status / totals — those change only via the verified server-side
+-- Nomod webhook flow (service role). Column-level protection is enforced by the
+-- trg_protect_order_payment_fields trigger (see functions.sql).
+CREATE POLICY "Users can update own orders (no payment fields)"
   ON orders FOR UPDATE
-  USING (user_id = auth.uid())
+  USING (user_id = auth.uid() AND payment_status <> 'paid')
   WITH CHECK (user_id = auth.uid());
 
 CREATE POLICY "Admins can manage all orders"

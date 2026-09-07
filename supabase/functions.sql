@@ -269,6 +269,11 @@ RETURNS JSONB AS $$
 DECLARE
   result JSONB;
 BEGIN
+  -- SECURITY: admin-only (checked inside the SECURITY DEFINER function)
+  IF NOT is_admin() THEN
+    RETURN jsonb_build_object('error', 'forbidden');
+  END IF;
+
   SELECT jsonb_build_object(
     'total_revenue', COALESCE(SUM(total), 0),
     'total_orders', COUNT(*)::INT,
@@ -292,6 +297,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER
 
 REVOKE EXECUTE ON FUNCTION public.admin_kpis(date, date) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.admin_kpis(date, date) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.admin_kpis(date, date) FROM authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_kpis(date, date) TO service_role, authenticated;
 
 -- ── Revenue series RPC (for charts) ─────────────────────────
 CREATE OR REPLACE FUNCTION public.revenue_series(
@@ -301,28 +308,44 @@ CREATE OR REPLACE FUNCTION public.revenue_series(
 )
 RETURNS JSONB AS $$
 BEGIN
+  -- SECURITY: admin-only
+  IF NOT is_admin() THEN
+    RETURN '[]'::jsonb;
+  END IF;
+
   RETURN (
-    SELECT COALESCE(jsonb_agg(
-      jsonb_build_object(
-        'date', d::DATE,
-        'revenue', COALESCE(s.revenue, 0),
-        'orders', COALESCE(s.order_count, 0)
-      )
-    ), '[]'::jsonb)
-    FROM generate_series(p_start, p_end,
-      CASE p_interval
-        WHEN 'week' THEN '7 days'::interval
-        WHEN 'month' THEN '1 month'::interval
-        ELSE '1 day'::interval
-      END
-    ) d
-    LEFT JOIN LATERAL (
-      SELECT SUM(total) AS revenue, COUNT(*)::INT AS order_count
+    WITH series AS (
+      SELECT generate_series(
+        p_start,
+        p_end,
+        CASE p_interval
+          WHEN 'week' THEN '7 days'::interval
+          WHEN 'month' THEN '1 month'::interval
+          ELSE '1 day'::interval
+        END
+      )::DATE AS d
+    ),
+    totals AS (
+      SELECT created_at::DATE AS d,
+             SUM(total) AS revenue,
+             COUNT(*)::INT AS order_count
       FROM public.orders
-      WHERE public.orders.created_at::DATE = d::DATE
-        AND public.orders.payment_status = 'paid'
-    ) s ON true
-    ORDER BY d
+      WHERE payment_status = 'paid'
+        AND created_at::DATE BETWEEN p_start AND p_end
+      GROUP BY created_at::DATE
+    )
+    SELECT COALESCE(
+      jsonb_agg(
+        jsonb_build_object(
+          'date', s.d,
+          'revenue', COALESCE(t.revenue, 0),
+          'orders', COALESCE(t.order_count, 0)
+        ) ORDER BY s.d
+      ),
+      '[]'::jsonb
+    )
+    FROM series s
+    LEFT JOIN totals t ON t.d = s.d
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
@@ -330,6 +353,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER
 
 REVOKE EXECUTE ON FUNCTION public.revenue_series(date, date, text) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.revenue_series(date, date, text) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.revenue_series(date, date, text) FROM authenticated;
+GRANT EXECUTE ON FUNCTION public.revenue_series(date, date, text) TO service_role, authenticated;
 
 -- ── Top products RPC ─────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.top_products(
@@ -339,25 +364,32 @@ CREATE OR REPLACE FUNCTION public.top_products(
 )
 RETURNS JSONB AS $$
 BEGIN
+  -- SECURITY: admin-only
+  IF NOT is_admin() THEN
+    RETURN '[]'::jsonb;
+  END IF;
+
   RETURN (
-    SELECT COALESCE(jsonb_agg(
-      jsonb_build_object(
+    SELECT COALESCE(jsonb_agg(row_data ORDER BY row_data.revenue DESC NULLS LAST), '[]'::jsonb)
+    FROM (
+      SELECT jsonb_build_object(
         'id', p.id,
         'name', p.name,
         'slug', p.slug,
-        'sales', p.sales_count,
+        'sales', COALESCE(SUM(oi.quantity), 0),
         'revenue', COALESCE(SUM(oi.total), 0),
-        'image', (SELECT url FROM public.product_images WHERE product_id = p.id AND is_primary = true LIMIT 1)
-      )
-    ), '[]'::jsonb)
-    FROM public.products p
-    LEFT JOIN public.order_items oi ON oi.product_id = p.id
-    LEFT JOIN public.orders o ON o.id = oi.order_id AND o.payment_status = 'paid'
-      AND o.created_at::DATE BETWEEN p_start AND p_end
-    WHERE p.deleted_at IS NULL AND p.is_active = true
-    GROUP BY p.id
-    ORDER BY SUM(oi.total) DESC NULLS LAST
-    LIMIT p_limit
+        'image', (SELECT url FROM public.product_images
+                  WHERE product_id = p.id AND is_primary = true LIMIT 1)
+      ) AS row_data
+      FROM public.products p
+      LEFT JOIN public.order_items oi ON oi.product_id = p.id
+      LEFT JOIN public.orders o ON o.id = oi.order_id
+        AND o.payment_status = 'paid'
+        AND o.created_at::DATE BETWEEN p_start AND p_end
+      WHERE p.deleted_at IS NULL AND p.is_active = true
+      GROUP BY p.id, p.name, p.slug
+      LIMIT p_limit
+    ) ranked
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
@@ -365,3 +397,124 @@ $$ LANGUAGE plpgsql SECURITY DEFINER
 
 REVOKE EXECUTE ON FUNCTION public.top_products(int, date, date) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.top_products(int, date, date) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.top_products(int, date, date) FROM authenticated;
+GRANT EXECUTE ON FUNCTION public.top_products(int, date, date) TO service_role, authenticated;
+
+-- ═══════════════════════════════════════════════════════════════
+-- ADMIN SECURITY (sync with supabase/admin-security-fix.sql)
+-- ═══════════════════════════════════════════════════════════════
+
+-- ── Protect order payment fields (customers can never change them) ──
+-- RLS is row-level only, so payment-field protection is enforced by a
+-- BEFORE UPDATE trigger. The service role (Nomod webhook) and admins pass;
+-- customers who try to flip payment_status/totals are rejected.
+CREATE OR REPLACE FUNCTION public.protect_order_payment_fields()
+RETURNS TRIGGER AS $$
+DECLARE
+  req_role TEXT;
+BEGIN
+  req_role := COALESCE(NULLIF(current_setting('request.jwt.claims', true)::jsonb ->> 'role', ''), auth.role());
+
+  IF req_role = 'service_role' OR public.is_admin() THEN
+    RETURN NEW;
+  END IF;
+
+  IF (NEW.payment_status IS DISTINCT FROM OLD.payment_status)
+     OR (NEW.nomad_order_id IS DISTINCT FROM OLD.nomad_order_id)
+     OR (NEW.nomad_checkout_url IS DISTINCT FROM OLD.nomad_checkout_url)
+     OR (NEW.total IS DISTINCT FROM OLD.total)
+     OR (NEW.subtotal IS DISTINCT FROM OLD.subtotal)
+     OR (NEW.tax IS DISTINCT FROM OLD.tax)
+     OR (NEW.shipping IS DISTINCT FROM OLD.shipping)
+     OR (NEW.discount IS DISTINCT FROM OLD.discount)
+     OR (NEW.currency IS DISTINCT FROM OLD.currency)
+  THEN
+    RAISE EXCEPTION 'Cannot modify payment fields' USING ERRCODE = '42501';
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+   SET search_path = '';
+
+DROP TRIGGER IF EXISTS trg_protect_order_payment_fields ON public.orders;
+CREATE TRIGGER trg_protect_order_payment_fields
+  BEFORE UPDATE ON public.orders
+  FOR EACH ROW EXECUTE FUNCTION public.protect_order_payment_fields();
+
+-- ── Secure role-change RPC (replaces direct client-side profile UPDATE) ──
+-- Caller must be an admin (checked inside). Validates the target user and
+-- role, protects the last admin, and only super_admin can touch super_admin.
+CREATE OR REPLACE FUNCTION public.admin_set_user_role(
+  p_target_user UUID,
+  p_new_role TEXT
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  caller_is_admin BOOLEAN;
+  caller_is_super BOOLEAN;
+  target_current_role TEXT;
+  admin_count INT;
+BEGIN
+  IF p_new_role NOT IN ('customer', 'admin') THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Invalid target role');
+  END IF;
+
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role IN ('admin', 'super_admin')
+  ) INTO caller_is_admin;
+
+  IF NOT caller_is_admin THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Forbidden');
+  END IF;
+
+  SELECT role::text INTO target_current_role
+  FROM public.profiles WHERE id = p_target_user;
+
+  IF target_current_role IS NULL THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Target user not found');
+  END IF;
+
+  IF target_current_role = 'super_admin' THEN
+    SELECT EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid() AND role = 'super_admin'
+    ) INTO caller_is_super;
+    IF NOT caller_is_super THEN
+      RETURN jsonb_build_object('success', false, 'error', 'Only super_admin can modify a super_admin');
+    END IF;
+  END IF;
+
+  IF target_current_role IN ('admin', 'super_admin') AND p_new_role = 'customer' THEN
+    SELECT COUNT(*) INTO admin_count
+    FROM public.profiles WHERE role IN ('admin', 'super_admin');
+    IF admin_count <= 1 THEN
+      RETURN jsonb_build_object('success', false, 'error', 'Cannot demote the last administrator');
+    END IF;
+  END IF;
+
+  UPDATE public.profiles
+  SET role = p_new_role::public.user_role, updated_at = now()
+  WHERE id = p_target_user;
+
+  IF p_new_role = 'admin' THEN
+    INSERT INTO public.admin_users (user_id, granted_by)
+    VALUES (p_target_user, auth.uid())
+    ON CONFLICT DO NOTHING;
+  ELSE
+    DELETE FROM public.admin_users WHERE user_id = p_target_user;
+  END IF;
+
+  RETURN jsonb_build_object('success', true, 'new_role', p_new_role);
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.admin_set_user_role(uuid, text) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.admin_set_user_role(uuid, text) FROM anon;
+GRANT EXECUTE ON FUNCTION public.admin_set_user_role(uuid, text) TO authenticated;
+

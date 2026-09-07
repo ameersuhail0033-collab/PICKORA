@@ -39,7 +39,9 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script>
+  <script src="/js/admin-guard.js"></script>
+  <script src="/js/admin.js"></script>
   <script src="/js/analytics.js"></script>
-  <script>document.addEventListener('DOMContentLoaded',function(){initAdminSidebar('analytics');loadAnalytics();});</script>
+  <script>document.addEventListener('DOMContentLoaded',function(){requireAdmin(function(){initAdminSidebar('analytics');loadAnalytics();});});</script>
 </body>
 </html>

@@ -4,16 +4,18 @@
 (function () {
   'use strict';
 
-  document.addEventListener('DOMContentLoaded', async function () {
-    if (!window.db) await new Promise(function (r) { setTimeout(r, 300); });
-    if (!document.getElementById('analytics-revenue')) return;
-    loadAnalytics();
-  });
+  // NOTE: page init is gated behind requireAdmin() in admin/analytics.html;
+  // this file only provides the loader + charts.
 
   window.loadAnalytics = async function loadAnalytics() {
     // Revenue chart
     var revResult = await db.rpc('revenue_series', { p_interval: 'day' });
-    drawLineChart('analytics-revenue', revResult.data || [], 'revenue', '$');
+    if (revResult.error) {
+      window.adminErrorState && window.adminErrorState('analytics-top-products', 'Analytics failed to load: ' + revResult.error.message);
+      console.error('[analytics] revenue_series error:', revResult.error);
+      return;
+    }
+    drawLineChart('analytics-revenue', revResult.data || [], 'revenue', 'AED ');
 
     // Orders chart
     drawBarChart('analytics-orders', revResult.data || [], 'orders', '');
@@ -21,6 +23,11 @@
     // Top products
     var topResult = await db.rpc('top_products', { p_limit: 10 });
     var tbody = document.getElementById('analytics-top-products');
+    if (topResult.error) {
+      window.adminErrorState && window.adminErrorState('analytics-top-products', 'Analytics failed to load: ' + topResult.error.message);
+      console.error('[analytics] top_products error:', topResult.error);
+      return;
+    }
     if (topResult.data && topResult.data.length > 0) {
       tbody.innerHTML = topResult.data.map(function (p) {
         return '<tr><td><strong>' + esc(p.name) + '</strong></td><td>' + (p.sales || 0) + '</td><td>' + formatPrice(p.revenue || 0) + '</td></tr>';

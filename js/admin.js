@@ -7,6 +7,32 @@
 
   var _allCategories = [];
 
+  /* ── Admin error-state helpers (auth/db errors ≠ empty data) ── */
+  function dbErrorMessage(error) {
+    if (!error) return null;
+    var code = String(error.code || '');
+    var status = error.status || 0;
+    var msg = error.message || '';
+    if (code === '42501' || status === 401 || status === 403) {
+      return 'Authorization error: your session may have expired or you lack admin access. Refresh and try again.';
+    }
+    if (status === 406) return 'Request rejected (406): the query is not allowed. Refresh and try again.';
+    return 'Database error' + (code ? ' (' + code + ')' : '') + ': ' + String(msg).slice(0, 140);
+  }
+
+  window.adminErrorState = function adminErrorState(containerId, message) {
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    el.innerHTML = '<tr><td colspan="99" style="text-align:center;padding:2rem;color:#EF4444;">⚠️ ' + esc(message) + '</td></tr>';
+  };
+
+  function isAuthError(error) {
+    if (!error) return false;
+    var code = String(error.code || '');
+    var status = error.status || 0;
+    return code === '42501' || status === 401 || status === 403 || status === 406;
+  }
+
   /* ── Admin Sidebar ──────────────────────────────────────── */
   window.initAdminSidebar = function initAdminSidebar(activePage) {
     var sidebar = document.getElementById('admin-sidebar');
@@ -54,6 +80,15 @@
   window.loadDashboard = async function loadDashboard() {
     try {
       var result = await db.rpc('admin_kpis');
+      if (result.error) {
+        adminErrorState('recent-orders', dbErrorMessage(result.error));
+        console.error('[admin] admin_kpis error:', result.error);
+        return;
+      }
+      if (result.data && result.data.error) {
+        adminErrorState('recent-orders', 'Access denied: ' + result.data.error);
+        return;
+      }
       if (result.data) {
         document.getElementById('kpi-revenue').textContent = formatPrice(result.data.total_revenue || 0);
         document.getElementById('kpi-orders').textContent = (result.data.total_orders || 0).toLocaleString();
@@ -69,6 +104,11 @@
       // Recent orders
       var orders = await db.from('orders').select('*, profiles(full_name,email)').order('created_at', { ascending: false }).limit(10);
       var tbody = document.getElementById('recent-orders');
+      if (orders.error) {
+        adminErrorState('recent-orders', dbErrorMessage(orders.error));
+        console.error('[admin] orders error:', orders.error);
+        return;
+      }
       if (orders.data && orders.data.length > 0) {
         var statusMap = { pending: 'status-pending', confirmed: 'status-confirmed', processing: 'status-processing', shipped: 'status-shipped', delivered: 'status-delivered', cancelled: 'status-cancelled' };
         tbody.innerHTML = orders.data.map(function (o) {
@@ -82,6 +122,11 @@
       // Top products
       var topProducts = await db.rpc('top_products', { p_limit: 5 });
       var tpTbody = document.getElementById('top-products');
+      if (topProducts.error) {
+        adminErrorState('top-products', dbErrorMessage(topProducts.error));
+        console.error('[admin] top_products error:', topProducts.error);
+        return;
+      }
       if (topProducts.data && topProducts.data.length > 0) {
         tpTbody.innerHTML = topProducts.data.map(function (p) {
           return '<tr><td><strong>' + esc(p.name) + '</strong></td><td>' + (p.sales || 0) + '</td><td>' + formatPrice(p.revenue || 0) + '</td></tr>';
@@ -90,6 +135,7 @@
         tpTbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:1rem;color:var(--text-muted);">No data yet</td></tr>';
       }
     } catch (e) {
+      adminErrorState('recent-orders', 'Unexpected error: ' + e.message);
       console.error('[admin] Dashboard error:', e);
     }
   };
@@ -102,6 +148,11 @@
     }
 
     var result = await db.rpc('revenue_series', { p_interval: interval });
+    if (result.error) {
+      console.error('[admin] revenue_series error:', result.error);
+      showToast('Chart failed to load: ' + (isAuthError(result.error) ? 'no admin access' : result.error.message), 'error');
+      return;
+    }
     var data = result.data || [];
 
     var canvas = document.getElementById('revenue-chart');
@@ -213,6 +264,11 @@
       .order('created_at', { ascending: false });
 
     var tbody = document.getElementById('products-tbody');
+    if (result.error) {
+      adminErrorState('products-tbody', dbErrorMessage(result.error));
+      console.error('[admin] products error:', result.error);
+      return;
+    }
     if (!result.data || result.data.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;">No products</td></tr>';
       return;
@@ -220,7 +276,7 @@
 
     tbody.innerHTML = result.data.map(function (p) {
       var img = p.product_images && p.product_images.find(function (i) { return i.is_primary; });
-      var imgUrl = img ? img.url : 'https://picsum.photos/seed/prod/60/60';
+      var imgUrl = img ? productImageUrl(img.url) : '';
       var catName = p.categories ? p.categories.name : '-';
       return '<tr>' +
         '<td><img src="' + esc(imgUrl) + '" style="width:48px;height:48px;border-radius:8px;object-fit:cover;"></td>' +
@@ -296,13 +352,18 @@
       track_inventory: document.getElementById('pf-track').checked,
     };
 
+    var res;
     if (id) {
-      await db.from('products').update(data).eq('id', id);
-      showToast('Product updated', 'success');
+      res = await db.from('products').update(data).eq('id', id);
     } else {
-      await db.from('products').insert(data);
-      showToast('Product created', 'success');
+      res = await db.from('products').insert(data);
     }
+    if (res.error) {
+      showToast('Product save failed: ' + (isAuthError(res.error) ? 'no admin access' : res.error.message), 'error');
+      console.error('[admin] saveProduct error:', res.error);
+      return;
+    }
+    showToast(id ? 'Product updated' : 'Product created', 'success');
     closeProductForm();
     loadAdminProducts();
   };
@@ -310,7 +371,12 @@
   window.deleteProduct = async function deleteProduct(id) {
     var ok = await confirmDialog('Delete this product?');
     if (!ok) return;
-    await db.from('products').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+    var res = await db.from('products').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+    if (res.error) {
+      showToast('Delete failed: ' + (isAuthError(res.error) ? 'no admin access' : res.error.message), 'error');
+      console.error('[admin] deleteProduct error:', res.error);
+      return;
+    }
     showToast('Product deleted', 'info');
     loadAdminProducts();
   };
@@ -333,6 +399,11 @@
   window.loadAdminCategories = async function loadAdminCategories() {
     var result = await db.from('categories').select('*, products:products(count)').order('sort_order');
     var tbody = document.getElementById('categories-tbody');
+    if (result.error) {
+      adminErrorState('categories-tbody', dbErrorMessage(result.error));
+      console.error('[admin] categories error:', result.error);
+      return;
+    }
     if (!result.data || result.data.length === 0) {
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;">No categories</td></tr>';
       return;
@@ -370,8 +441,13 @@
       sort_order: parseInt(document.getElementById('cf-sort').value) || 0,
       is_active: document.getElementById('cf-active').checked,
     };
-    if (id) { await db.from('categories').update(data).eq('id', id); }
-    else { await db.from('categories').insert(data); }
+    var res = id ? await db.from('categories').update(data).eq('id', id)
+                 : await db.from('categories').insert(data);
+    if (res.error) {
+      showToast('Category save failed: ' + (isAuthError(res.error) ? 'no admin access' : res.error.message), 'error');
+      console.error('[admin] saveCategory error:', res.error);
+      return;
+    }
     closeCategoryForm();
     loadAdminCategories();
     showToast('Category saved', 'success');
@@ -380,7 +456,11 @@
   window.deleteCategory = async function deleteCategory(id) {
     var ok = await confirmDialog('Delete this category?');
     if (!ok) return;
-    await db.from('categories').update({ deleted_at: new Date().toISOString(), is_active: false }).eq('id', id);
+    var res = await db.from('categories').update({ deleted_at: new Date().toISOString(), is_active: false }).eq('id', id);
+    if (res.error) {
+      showToast('Delete failed: ' + (isAuthError(res.error) ? 'no admin access' : res.error.message), 'error');
+      return;
+    }
     showToast('Category deleted', 'info');
     loadAdminCategories();
   };
@@ -389,6 +469,11 @@
   window.loadAdminOrders = async function loadAdminOrders() {
     var result = await db.from('orders').select('*, profiles(full_name,email)').order('created_at', { ascending: false }).limit(50);
     var tbody = document.getElementById('orders-tbody');
+    if (result.error) {
+      adminErrorState('orders-tbody', dbErrorMessage(result.error));
+      console.error('[admin] orders error:', result.error);
+      return;
+    }
     if (!result.data || result.data.length === 0) {
       tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;">No orders</td></tr>';
       return;
@@ -406,7 +491,14 @@
     if (status === 'cancelled') data.cancelled_at = new Date().toISOString();
     if (status === 'shipped') data.shipped_at = new Date().toISOString();
     if (status === 'delivered') data.delivered_at = new Date().toISOString();
-    await db.from('orders').update(data).eq('id', orderId);
+    // Operational status ONLY — never payment_status (payment state changes
+    // exclusively through the verified server-side Nomod webhook flow).
+    var res = await db.from('orders').update(data).eq('id', orderId);
+    if (res.error) {
+      showToast('Order update failed: ' + (isAuthError(res.error) ? 'no admin access' : res.error.message), 'error');
+      console.error('[admin] updateOrderStatus error:', res.error);
+      return;
+    }
     showToast('Order updated', 'success');
   };
 
@@ -448,6 +540,11 @@
   window.loadAdminCustomers = async function loadAdminCustomers() {
     var result = await db.from('profiles').select('*').order('created_at', { ascending: false }).limit(100);
     var tbody = document.getElementById('customers-tbody');
+    if (result.error) {
+      adminErrorState('customers-tbody', dbErrorMessage(result.error));
+      console.error('[admin] customers error:', result.error);
+      return;
+    }
     if (!result.data || result.data.length === 0) {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;">No customers</td></tr>';
       return;
@@ -461,7 +558,20 @@
     var newRole = currentRole === 'customer' ? 'admin' : 'customer';
     var ok = await confirmDialog('Change role to ' + newRole + '?');
     if (!ok) return;
-    await db.from('profiles').update({ role: newRole }).eq('id', userId);
+
+    // SECURE PATH: role changes go through the admin_set_user_role RPC which
+    // re-verifies the caller is an admin server-side. A direct client-side
+    // profiles.update() is never used for role changes.
+    var res = await db.rpc('admin_set_user_role', { p_target_user: userId, p_new_role: newRole });
+    if (res.error) {
+      showToast('Role change failed: ' + (isAuthError(res.error) ? 'no admin access' : res.error.message), 'error');
+      console.error('[admin] toggleCustomerRole error:', res.error);
+      return;
+    }
+    if (res.data && res.data.success === false) {
+      showToast('Role change failed: ' + (res.data.error || 'Forbidden'), 'error');
+      return;
+    }
     showToast('Role updated', 'success');
     loadAdminCustomers();
   };
@@ -475,6 +585,11 @@
   window.loadAdminCoupons = async function loadAdminCoupons() {
     var result = await db.from('coupons').select('*').order('created_at', { ascending: false });
     var tbody = document.getElementById('coupons-tbody');
+    if (result.error) {
+      adminErrorState('coupons-tbody', dbErrorMessage(result.error));
+      console.error('[admin] coupons error:', result.error);
+      return;
+    }
     if (!result.data || result.data.length === 0) {
       tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;">No coupons</td></tr>';
       return;
@@ -516,8 +631,13 @@
       expires_at: document.getElementById('cpf-expires').value || null,
       is_active: document.getElementById('cpf-active').checked,
     };
-    if (id) { await db.from('coupons').update(data).eq('id', id); }
-    else { await db.from('coupons').insert(data); }
+    var res = id ? await db.from('coupons').update(data).eq('id', id)
+                 : await db.from('coupons').insert(data);
+    if (res.error) {
+      showToast('Coupon save failed: ' + (isAuthError(res.error) ? 'no admin access' : res.error.message), 'error');
+      console.error('[admin] saveCoupon error:', res.error);
+      return;
+    }
     closeCouponForm();
     loadAdminCoupons();
     showToast('Coupon saved', 'success');
@@ -526,7 +646,11 @@
   window.deleteCoupon = async function deleteCoupon(id) {
     var ok = await confirmDialog('Delete this coupon?');
     if (!ok) return;
-    await db.from('coupons').delete().eq('id', id);
+    var res = await db.from('coupons').delete().eq('id', id);
+    if (res.error) {
+      showToast('Delete failed: ' + (isAuthError(res.error) ? 'no admin access' : res.error.message), 'error');
+      return;
+    }
     showToast('Coupon deleted', 'info');
     loadAdminCoupons();
   };
@@ -534,6 +658,11 @@
   /* ── Settings ───────────────────────────────────────────── */
   window.loadSettingsForm = async function loadSettingsForm() {
     var settings = await getStoreSettings();
+    if (settings === null || settings === undefined) {
+      showToast('Could not load store settings (database error or none configured).', 'error');
+      console.error('[admin] loadSettingsForm: no settings returned');
+      return;
+    }
     if (!settings) return;
     var fields = ['name', 'company', 'logo', 'favicon', 'primary', 'secondary', 'accent', 'email', 'phone', 'address', 'currency', 'tax', 'shipping', 'freeship', 'facebook', 'instagram', 'twitter', 'youtube', 'meta', 'og'];
     var keys = ['store_name', 'company_name', 'logo_url', 'favicon_url', 'primary_color', 'secondary_color', 'accent_color', 'support_email', 'support_phone', 'address', 'currency', 'tax_rate', 'shipping_cost', 'free_shipping_threshold', 'social_facebook', 'social_instagram', 'social_twitter', 'social_youtube', 'meta_description', 'og_image_url'];
@@ -551,12 +680,22 @@
     form.forEach(function (value, key) { data[key] = value; });
     data.maintenance_mode = document.getElementById('sf-maintenance').checked;
 
-    // Update singleton row
-    var existing = await db.from('store_settings').select('id').limit(1).single();
-    if (existing.data) {
-      await db.from('store_settings').update(data).eq('id', existing.data.id);
+    // Update singleton row (admin-only via RLS)
+    var existing = await db.from('store_settings').select('id').limit(1);
+    var res;
+    if (existing.error) {
+      showToast('Settings save failed: ' + (isAuthError(existing.error) ? 'no admin access' : existing.error.message), 'error');
+      return;
+    }
+    if (existing.data && existing.data.length > 0) {
+      res = await db.from('store_settings').update(data).eq('id', existing.data[0].id);
     } else {
-      await db.from('store_settings').insert(data);
+      res = await db.from('store_settings').insert(data);
+    }
+    if (res.error) {
+      showToast('Settings save failed: ' + (isAuthError(res.error) ? 'no admin access' : res.error.message), 'error');
+      console.error('[admin] saveSettings error:', res.error);
+      return;
     }
     invalidateSettingsCache();
     showToast('Settings saved! Branding applied.', 'success');

@@ -6,11 +6,11 @@
   "scripts": {
     "generate-env": "node scripts/generate-env.js",
     "build": "node scripts/generate-env.js",
-    "dev": "node scripts/generate-env.js && npx serve . -l 3000",
-    "start": "npx serve . -l 3000"
+    "dev": "node scripts/generate-env.js && node server.js",
+    "start": "node scripts/generate-env.js && node server.js"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "keywords": [
     "ecommerce",
@@ -21,6 +21,10 @@
   ],
   "author": "Pickora",
   "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.115.0",
+    "express": "^4.22.2"
+  },
   "devDependencies": {
     "serve": "^14.2.6",
     "supabase": "^2.116.0"
