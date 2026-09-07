@@ -1,50 +1,240 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Orders — Admin — {{STORE_NAME}}</title>
-  <meta name="robots" content="noindex, nofollow">
-  <link rel="icon" type="image/png" href="/assets/icons/favicon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css">
-  <link rel="stylesheet" href="/css/admin.css">
-  <script src="/js/env.js"></script><script src="/js/config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders — Pickora Admin</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/png" href="/assets/icons/favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css">
+    <style>
+        .page-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+        .search-box { display: flex; align-items: center; gap: 8px; background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius); padding: 8px 12px; flex: 1; max-width: 320px; }
+        .search-box input { background: none; border: none; color: var(--admin-text); font-size: 13px; outline: none; width: 100%; }
+        .search-box input::placeholder { color: var(--admin-text-muted); }
+        .search-box i { color: var(--admin-text-muted); font-size: 14px; }
+        .filter-select { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius); color: var(--admin-text); padding: 8px 12px; font-size: 13px; outline: none; cursor: pointer; font-family: inherit; }
+        .filter-select option { background: var(--admin-surface); color: var(--admin-text); }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 600; color: var(--admin-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--admin-border); }
+        .data-table td { padding: 12px 16px; font-size: 13px; color: var(--admin-text-secondary); border-bottom: 1px solid var(--admin-border-light); }
+        .data-table tr:hover td { background: var(--admin-surface-hover); }
+        .data-table .order-id { font-weight: 600; color: var(--admin-text); font-family: monospace; }
+        .data-table .amount { font-weight: 600; color: var(--admin-text); font-variant-numeric: tabular-nums; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge-pending { background: rgba(245,158,11,0.12); color: #f59e0b; }
+        .badge-confirmed { background: rgba(59,130,246,0.12); color: #3b82f6; }
+        .badge-processing { background: rgba(139,92,246,0.12); color: var(--admin-secondary); }
+        .badge-shipped { background: rgba(34,197,94,0.12); color: var(--admin-positive); }
+        .badge-delivered { background: rgba(34,197,94,0.12); color: var(--admin-positive); }
+        .badge-cancelled { background: rgba(239,68,68,0.12); color: var(--admin-negative); }
+        .badge-paid { background: rgba(34,197,94,0.12); color: var(--admin-positive); }
+        .action-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--admin-border); background: transparent; color: var(--admin-text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.15s; }
+        .action-btn:hover { background: var(--admin-surface-hover); color: var(--admin-text); border-color: var(--admin-secondary); }
+        .status-select { background: var(--admin-bg); border: 1px solid var(--admin-border); border-radius: var(--admin-radius-sm); color: var(--admin-text); padding: 5px 8px; font-size: 12px; outline: none; cursor: pointer; font-family: inherit; }
+        .modal-overlay { position: fixed; inset: 0; z-index: 9000; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 24px; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius-lg); width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--admin-border); }
+        .modal-header h3 { font-size: 16px; font-weight: 600; margin: 0; }
+        .modal-close { width: 32px; height: 32px; border-radius: 6px; border: none; background: var(--admin-surface-hover); color: var(--admin-text-secondary); cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+        .modal-close:hover { color: var(--admin-text); }
+        .detail-section { padding: 16px 24px; }
+        .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--admin-border-light); font-size: 13px; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: var(--admin-text-muted); }
+        .detail-value { color: var(--admin-text); font-weight: 500; }
+        .detail-items { padding: 16px 24px; border-top: 1px solid var(--admin-border); }
+        .item-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--admin-border-light); font-size: 13px; }
+        @media (max-width: 768px) { .data-table { font-size: 12px; } .data-table th, .data-table td { padding: 8px 10px; } }
+    </style>
 </head>
 <body>
-  <div class="admin-layout">
-    <aside class="admin-sidebar" id="admin-sidebar"></aside>
+    <aside class="admin-sidebar" id="sidebar">
+        <div class="admin-sidebar-brand">
+            <img src="/assets/icons/favicon.png" alt="P" style="width:32px;height:32px;border-radius:8px;">
+        </div>
+        <nav class="admin-sidebar-nav">
+            <a href="/admin/dashboard.html" class="admin-nav-item" data-tooltip="Overview"><span class="nav-icon"><i class="fas fa-th-large"></i></span><span class="nav-label">Overview</span></a>
+            <a href="/admin/products.html" class="admin-nav-item" data-tooltip="Products"><span class="nav-icon"><i class="fas fa-box"></i></span><span class="nav-label">Products</span></a>
+            <a href="/admin/orders.html" class="admin-nav-item active" data-tooltip="Orders"><span class="nav-icon"><i class="fas fa-shopping-cart"></i></span><span class="nav-label">Orders</span></a>
+            <a href="/admin/customers.html" class="admin-nav-item" data-tooltip="Customers"><span class="nav-icon"><i class="fas fa-users"></i></span><span class="nav-label">Customers</span></a>
+            <a href="/admin/categories.html" class="admin-nav-item" data-tooltip="Categories"><span class="nav-icon"><i class="fas fa-tags"></i></span><span class="nav-label">Categories</span></a>
+            <a href="/admin/coupons.html" class="admin-nav-item" data-tooltip="Coupons"><span class="nav-icon"><i class="fas fa-ticket-alt"></i></span><span class="nav-label">Coupons</span></a>
+            <a href="/admin/analytics.html" class="admin-nav-item" data-tooltip="Analytics"><span class="nav-icon"><i class="fas fa-chart-bar"></i></span><span class="nav-label">Analytics</span></a>
+            <a href="/admin/settings.html" class="admin-nav-item" data-tooltip="Settings"><span class="nav-icon"><i class="fas fa-cog"></i></span><span class="nav-label">Settings</span></a>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <a href="/" class="admin-nav-item" data-tooltip="View Store"><span class="nav-icon"><i class="fas fa-external-link-alt"></i></span><span class="nav-label">Store</span></a>
+            <button class="admin-nav-item" id="logoutBtn" data-tooltip="Logout"><span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span><span class="nav-label">Logout</span></button>
+        </div>
+    </aside>
+
     <main class="admin-main">
-      <div class="admin-topbar"><h1>Orders</h1></div>
-      <div class="admin-table-card glass-card">
-        <div class="admin-table-header">
-          <div class="admin-table-search"><span>🔍</span><input type="text" id="order-search" placeholder="Search orders..." oninput="searchOrders(this.value)"></div>
-          <select class="form-select" id="order-status-filter" onchange="filterOrders()" style="padding:0.5rem 2rem 0.5rem 0.75rem;font-size:0.85rem;">
-            <option value="">All Status</option>
-            <option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="processing">Processing</option>
-            <option value="shipped">Shipped</option><option value="delivered">Delivered</option><option value="cancelled">Cancelled</option>
-          </select>
+        <header class="admin-topbar">
+            <div class="admin-topbar-left">
+                <div class="admin-topbar-breadcrumb"><i class="fas fa-shopping-cart"></i><span>Orders</span></div>
+            </div>
+            <div class="admin-topbar-right">
+                <button class="admin-topbar-icon" title="Notifications"><i class="fas fa-bell"></i></button>
+                <div class="admin-avatar" id="adminAvatar" title="Admin"><i class="fas fa-user"></i></div>
+            </div>
+        </header>
+
+        <div class="admin-content">
+            <div class="page-toolbar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="orderSearch" placeholder="Search orders..." oninput="filterOrders()">
+                </div>
+                <select class="filter-select" id="orderStatusFilter" onchange="filterOrders()">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="processing">Processing</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+
+            <div class="admin-panel">
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order</th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-tbody">
+                            <tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--admin-text-muted);"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="table-container" style="border:none;border-radius:0;">
-          <table class="table"><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
-          <tbody id="orders-tbody"><tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted);">Loading...</td></tr></tbody></table>
-        </div>
-        <div id="orders-pagination" style="padding:1rem;"></div>
-      </div>
-      <div class="modal-overlay" id="order-modal" style="display:none;">
-        <div class="modal-content glass-card" style="max-width:640px;max-height:90vh;overflow-y:auto;">
-          <div class="modal-header"><h3>Order Detail</h3><button class="modal-close" onclick="closeOrderDetail()">&times;</button></div>
-          <div id="order-detail-content"></div>
-        </div>
-      </div>
     </main>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script>
-  <script src="/js/admin-guard.js"></script>
-  <script src="/js/admin.js"></script>
-  <script>document.addEventListener('DOMContentLoaded',function(){requireAdmin(function(){initAdminSidebar('orders');loadAdminOrders();});});</script>
+
+    <!-- Order Detail Modal -->
+    <div class="modal-overlay" id="order-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Order Detail</h3>
+                <button class="modal-close" onclick="closeOrderDetail()">&times;</button>
+            </div>
+            <div id="order-detail-content"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/env.js"></script>
+    <script src="/js/config.js"></script>
+    <script src="/js/supabase.js"></script>
+    <script src="/js/admin-guard.js"></script>
+    <script>
+    (function() {
+        'use strict';
+        var allOrders = [];
+
+        function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+        function fmt(v) { return 'AED ' + Number(v||0).toLocaleString('en-AE', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+        function fmtDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}); }
+
+        function statusBadge(status) {
+            var cls = {pending:'badge-pending',confirmed:'badge-confirmed',processing:'badge-processing',shipped:'badge-shipped',delivered:'badge-delivered',cancelled:'badge-cancelled'};
+            return '<span class="badge ' + (cls[status] || 'badge-pending') + '">' + esc(status) + '</span>';
+        }
+
+        function paymentBadge(status) {
+            return status === 'paid' ? '<span class="badge badge-paid">paid</span>' : '<span class="badge badge-pending">' + esc(status) + '</span>';
+        }
+
+        async function loadOrders() {
+            var result = await db.from('orders').select('*, profiles(full_name,email), order_items(quantity)').order('created_at', {ascending: false}).limit(100);
+            var tbody = document.getElementById('orders-tbody');
+            if (result.error) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--admin-negative);">Error: ' + esc(result.error.message) + '</td></tr>'; return; }
+            allOrders = result.data || [];
+            renderOrders(allOrders);
+        }
+
+        function renderOrders(orders) {
+            var tbody = document.getElementById('orders-tbody');
+            if (!orders.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--admin-text-muted);">No orders found</td></tr>'; return; }
+            tbody.innerHTML = orders.map(function(o) {
+                var customer = o.profiles ? (o.profiles.full_name || o.profiles.email) : 'Guest';
+                var items = o.order_items ? o.order_items.reduce(function(s,i){return s+i.quantity;},0) : 0;
+                var statusOptions = ['pending','confirmed','processing','shipped','delivered','cancelled'].map(function(s) {
+                    return '<option value="' + s + '"' + (o.status === s ? ' selected' : '') + '>' + s.charAt(0).toUpperCase() + s.slice(1) + '</option>';
+                }).join('');
+                return '<tr><td class="order-id">' + esc(o.order_number || o.id.slice(0,8)) + '</td><td>' + esc(customer) + '</td><td>' + items + '</td><td class="amount">' + fmt(o.total) + '</td><td>' + paymentBadge(o.payment_status) + '</td><td><select class="status-select" onchange="updateStatus(\'' + o.id + '\',this.value)">' + statusOptions + '</select></td><td>' + fmtDate(o.created_at) + '</td><td><button class="action-btn" title="View" onclick="viewOrder(\'' + o.id + '\')"><i class="fas fa-eye"></i></button></td></tr>';
+            }).join('');
+        }
+
+        window.filterOrders = function() {
+            var q = (document.getElementById('orderSearch').value || '').toLowerCase();
+            var status = document.getElementById('orderStatusFilter').value;
+            renderOrders(allOrders.filter(function(o) {
+                if (status && o.status !== status) return false;
+                if (q) {
+                    var customer = o.profiles ? (o.profiles.full_name || o.profiles.email || '') : '';
+                    if (!(o.order_number || '').toLowerCase().includes(q) && !customer.toLowerCase().includes(q)) return false;
+                }
+                return true;
+            }));
+        };
+
+        window.updateStatus = async function(orderId, status) {
+            var data = {status: status};
+            if (status === 'cancelled') data.cancelled_at = new Date().toISOString();
+            if (status === 'shipped') data.shipped_at = new Date().toISOString();
+            if (status === 'delivered') data.delivered_at = new Date().toISOString();
+            var res = await db.from('orders').update(data).eq('id', orderId);
+            if (res.error) { alert('Error: ' + res.error.message); loadOrders(); return; }
+        };
+
+        window.viewOrder = async function(id) {
+            var result = await db.from('orders').select('*, order_items(*), profiles(full_name,email)').eq('id', id).single();
+            if (!result.data) return;
+            var o = result.data;
+            var customer = o.profiles ? o.profiles.full_name + ' (' + o.profiles.email + ')' : 'Guest';
+            var itemsHtml = (o.order_items || []).map(function(item) {
+                return '<div class="item-row"><span>' + esc(item.name || 'Item') + ' × ' + item.quantity + '</span><span>' + fmt(item.total) + '</span></div>';
+            }).join('');
+            document.getElementById('order-detail-content').innerHTML =
+                '<div class="detail-section">' +
+                '<div class="detail-row"><span class="detail-label">Order</span><span class="detail-value">' + esc(o.order_number || o.id.slice(0,8)) + '</span></div>' +
+                '<div class="detail-row"><span class="detail-label">Customer</span><span class="detail-value">' + esc(customer) + '</span></div>' +
+                '<div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">' + fmtDate(o.created_at) + '</span></div>' +
+                '<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value">' + statusBadge(o.status) + '</span></div>' +
+                '<div class="detail-row"><span class="detail-label">Payment</span><span class="detail-value">' + paymentBadge(o.payment_status) + '</span></div>' +
+                (o.shipping_name ? '<div class="detail-row"><span class="detail-label">Shipping</span><span class="detail-value">' + esc(o.shipping_name) + ', ' + esc(o.shipping_city || '') + '</span></div>' : '') +
+                '</div>' +
+                '<div class="detail-items"><div style="font-weight:600;font-size:13px;margin-bottom:8px;color:var(--admin-text);">Items</div>' + itemsHtml + '</div>' +
+                '<div class="detail-section" style="border-top:1px solid var(--admin-border);text-align:right;">' +
+                '<div class="detail-row"><span class="detail-label">Subtotal</span><span class="detail-value">' + fmt(o.subtotal) + '</span></div>' +
+                '<div class="detail-row"><span class="detail-label">Tax</span><span class="detail-value">' + fmt(o.tax) + '</span></div>' +
+                '<div class="detail-row"><span class="detail-label">Shipping</span><span class="detail-value">' + fmt(o.shipping) + '</span></div>' +
+                '<div class="detail-row"><span class="detail-label" style="font-weight:700;color:var(--admin-text);">Total</span><span class="detail-value" style="font-size:16px;">' + fmt(o.total) + '</span></div>' +
+                '</div>';
+            document.getElementById('order-modal').classList.add('active');
+        };
+
+        window.closeOrderDetail = function() { document.getElementById('order-modal').classList.remove('active'); };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('logoutBtn').addEventListener('click', async function() { await db.auth.signOut(); window.location.href = '/pages/login.html'; });
+            requireAdmin(function() { loadOrders(); });
+        });
+    })();
+    </script>
 </body>
 </html>

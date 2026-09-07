@@ -1,37 +1,159 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Customers — Admin — {{STORE_NAME}}</title>
-  <meta name="robots" content="noindex, nofollow">
-  <link rel="icon" type="image/png" href="/assets/icons/favicon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css">
-  <link rel="stylesheet" href="/css/admin.css">
-  <script src="/js/env.js"></script><script src="/js/config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customers — Pickora Admin</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/png" href="/assets/icons/favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css">
+    <style>
+        .page-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+        .search-box { display: flex; align-items: center; gap: 8px; background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius); padding: 8px 12px; flex: 1; max-width: 320px; }
+        .search-box input { background: none; border: none; color: var(--admin-text); font-size: 13px; outline: none; width: 100%; }
+        .search-box input::placeholder { color: var(--admin-text-muted); }
+        .search-box i { color: var(--admin-text-muted); font-size: 14px; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 600; color: var(--admin-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--admin-border); }
+        .data-table td { padding: 12px 16px; font-size: 13px; color: var(--admin-text-secondary); border-bottom: 1px solid var(--admin-border-light); }
+        .data-table tr:hover td { background: var(--admin-surface-hover); }
+        .data-table .name { font-weight: 600; color: var(--admin-text); }
+        .data-table .email { font-size: 12px; }
+        .role-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .role-admin { background: rgba(139,92,246,0.12); color: var(--admin-secondary); }
+        .role-super { background: rgba(139,92,246,0.2); color: #a78bfa; }
+        .role-customer { background: rgba(148,163,184,0.12); color: var(--admin-text-secondary); }
+        .action-btns { display: flex; gap: 6px; }
+        .action-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--admin-border); background: transparent; color: var(--admin-text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.15s; }
+        .action-btn:hover { background: var(--admin-surface-hover); color: var(--admin-text); border-color: var(--admin-secondary); }
+        .action-btn.danger:hover { color: var(--admin-negative); border-color: var(--admin-negative); }
+        @media (max-width: 768px) { .data-table { font-size: 12px; } .data-table th, .data-table td { padding: 8px 10px; } }
+    </style>
 </head>
 <body>
-  <div class="admin-layout">
-    <aside class="admin-sidebar" id="admin-sidebar"></aside>
-    <main class="admin-main">
-      <div class="admin-topbar"><h1>Customers</h1></div>
-      <div class="admin-table-card glass-card">
-        <div class="admin-table-header"><div class="admin-table-search"><span>🔍</span><input type="text" id="customer-search" placeholder="Search customers..." oninput="searchCustomers(this.value)"></div></div>
-        <div class="table-container" style="border:none;border-radius:0;">
-          <table class="table"><thead><tr><th>Customer</th><th>Email</th><th>Role</th><th>Orders</th><th>Joined</th><th>Actions</th></tr></thead>
-          <tbody id="customers-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);">Loading...</td></tr></tbody></table>
+    <aside class="admin-sidebar" id="sidebar">
+        <div class="admin-sidebar-brand">
+            <img src="/assets/icons/favicon.png" alt="P" style="width:32px;height:32px;border-radius:8px;">
         </div>
-        <div id="customers-pagination" style="padding:1rem;"></div>
-      </div>
+        <nav class="admin-sidebar-nav">
+            <a href="/admin/dashboard.html" class="admin-nav-item" data-tooltip="Overview"><span class="nav-icon"><i class="fas fa-th-large"></i></span><span class="nav-label">Overview</span></a>
+            <a href="/admin/products.html" class="admin-nav-item" data-tooltip="Products"><span class="nav-icon"><i class="fas fa-box"></i></span><span class="nav-label">Products</span></a>
+            <a href="/admin/orders.html" class="admin-nav-item" data-tooltip="Orders"><span class="nav-icon"><i class="fas fa-shopping-cart"></i></span><span class="nav-label">Orders</span></a>
+            <a href="/admin/customers.html" class="admin-nav-item active" data-tooltip="Customers"><span class="nav-icon"><i class="fas fa-users"></i></span><span class="nav-label">Customers</span></a>
+            <a href="/admin/categories.html" class="admin-nav-item" data-tooltip="Categories"><span class="nav-icon"><i class="fas fa-tags"></i></span><span class="nav-label">Categories</span></a>
+            <a href="/admin/coupons.html" class="admin-nav-item" data-tooltip="Coupons"><span class="nav-icon"><i class="fas fa-ticket-alt"></i></span><span class="nav-label">Coupons</span></a>
+            <a href="/admin/analytics.html" class="admin-nav-item" data-tooltip="Analytics"><span class="nav-icon"><i class="fas fa-chart-bar"></i></span><span class="nav-label">Analytics</span></a>
+            <a href="/admin/settings.html" class="admin-nav-item" data-tooltip="Settings"><span class="nav-icon"><i class="fas fa-cog"></i></span><span class="nav-label">Settings</span></a>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <a href="/" class="admin-nav-item" data-tooltip="View Store"><span class="nav-icon"><i class="fas fa-external-link-alt"></i></span><span class="nav-label">Store</span></a>
+            <button class="admin-nav-item" id="logoutBtn" data-tooltip="Logout"><span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span><span class="nav-label">Logout</span></button>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <div class="admin-topbar-left">
+                <div class="admin-topbar-breadcrumb"><i class="fas fa-users"></i><span>Customers</span></div>
+            </div>
+            <div class="admin-topbar-right">
+                <button class="admin-topbar-icon" title="Notifications"><i class="fas fa-bell"></i></button>
+                <div class="admin-avatar" id="adminAvatar" title="Admin"><i class="fas fa-user"></i></div>
+            </div>
+        </header>
+
+        <div class="admin-content">
+            <div class="page-toolbar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="customerSearch" placeholder="Search customers..." oninput="filterCustomers()">
+                </div>
+            </div>
+
+            <div class="admin-panel">
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customers-tbody">
+                            <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--admin-text-muted);"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </main>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script>
-  <script src="/js/admin-guard.js"></script>
-  <script src="/js/admin.js"></script>
-  <script>document.addEventListener('DOMContentLoaded',function(){requireAdmin(function(){initAdminSidebar('customers');loadAdminCustomers();});});</script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/env.js"></script>
+    <script src="/js/config.js"></script>
+    <script src="/js/supabase.js"></script>
+    <script src="/js/admin-guard.js"></script>
+    <script>
+    (function() {
+        'use strict';
+        var allCustomers = [];
+
+        function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+        function fmtDate(d) {
+            if (!d) return '—';
+            return new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+        }
+
+        function roleBadge(role) {
+            if (role === 'super_admin') return '<span class="role-badge role-super">Super Admin</span>';
+            if (role === 'admin') return '<span class="role-badge role-admin">Admin</span>';
+            return '<span class="role-badge role-customer">Customer</span>';
+        }
+
+        async function loadCustomers() {
+            var result = await db.from('profiles').select('*').order('created_at', {ascending: false}).limit(100);
+            var tbody = document.getElementById('customers-tbody');
+            if (result.error) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--admin-negative);">Error: ' + esc(result.error.message) + '</td></tr>'; return; }
+            allCustomers = result.data || [];
+            renderCustomers(allCustomers);
+        }
+
+        function renderCustomers(customers) {
+            var tbody = document.getElementById('customers-tbody');
+            if (!customers.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--admin-text-muted);">No customers found</td></tr>'; return; }
+            tbody.innerHTML = customers.map(function(c) {
+                var initials = (c.full_name || 'U').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+                return '<tr><td><div style="display:flex;align-items:center;gap:10px;"><div style="width:32px;height:32px;border-radius:50%;background:var(--admin-secondary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;">' + initials + '</div><span class="name">' + esc(c.full_name || 'Unnamed') + '</span></div></td><td class="email">' + esc(c.email) + '</td><td>' + roleBadge(c.role) + '</td><td>' + fmtDate(c.created_at) + '</td><td><div class="action-btns"><button class="action-btn" title="' + (c.role === 'customer' ? 'Promote to Admin' : 'Demote to Customer') + '" onclick="toggleRole(\'' + c.id + '\',\'' + esc(c.role) + '\')"><i class="fas fa-' + (c.role === 'customer' ? 'arrow-up' : 'arrow-down') + '"></i></button></div></td></tr>';
+            }).join('');
+        }
+
+        window.filterCustomers = function() {
+            var q = document.getElementById('customerSearch').value.toLowerCase();
+            renderCustomers(allCustomers.filter(function(c) {
+                return (c.full_name || '').toLowerCase().includes(q) || (c.email || '').toLowerCase().includes(q) || (c.role || '').toLowerCase().includes(q);
+            }));
+        };
+
+        window.toggleRole = async function(userId, currentRole) {
+            var newRole = currentRole === 'customer' ? 'admin' : 'customer';
+            if (!confirm('Change role to ' + newRole + '?')) return;
+            var res = await db.rpc('admin_set_user_role', { p_target_user: userId, p_new_role: newRole });
+            if (res.error) { alert('Role change failed: ' + res.error.message); return; }
+            if (res.data && res.data.success === false) { alert('Role change failed: ' + (res.data.error || 'Forbidden')); return; }
+            loadCustomers();
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('logoutBtn').addEventListener('click', async function() { await db.auth.signOut(); window.location.href = '/pages/login.html'; });
+            requireAdmin(function() { loadCustomers(); });
+        });
+    })();
+    </script>
 </body>
 </html>
