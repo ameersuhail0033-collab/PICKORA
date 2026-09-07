@@ -62,7 +62,7 @@
         '<span class="pk-header-search-icon">' + ICONS.search + '</span>' +
         '<input type="text" id="header-search" placeholder="Search laptops..." autocomplete="off">' +
       '</div>' +
-      '<nav class="pk-header-nav">' +
+      '<nav class="pk-header-nav pk-nav-sibling">' +
         '<a href="/pages/shop.html">Shop</a>' +
         '<a href="/pages/shop.html?category=gaming-laptops">Gaming</a>' +
         '<a href="/pages/shop.html?category=business-laptops">Business</a>' +
@@ -136,7 +136,7 @@
       var primary = product.product_images.find(function (img) { return img.is_primary; });
       imgUrl = primary ? primary.url : product.product_images[0].url;
     }
-    if (!imgUrl) imgUrl = 'https://picsum.photos/seed/' + (product.slug || 'product') + '/600/450';
+    imgUrl = productImageUrl(imgUrl);
 
     var discount = 0;
     if (product.compare_at_price && product.compare_at_price > product.price) {
@@ -147,13 +147,26 @@
     if (discount > 0) badgeHtml = '<span class="pk-badge pk-badge-discount">-' + discount + '%</span>';
     else if (product.is_featured) badgeHtml = '<span class="pk-badge pk-badge-new">New</span>';
 
-    // Extract spec chips from short_description
+    // Extract spec chips from product variants or parse from name/description
     var specs = [];
-    if (product.short_description) {
-      var parts = product.short_description.split(',').map(function (s) { return s.trim(); });
-      if (parts.length >= 1) specs.push(parts[0]);
-      if (parts.length >= 2) specs.push(parts[1]);
-      if (parts.length >= 3) specs.push(parts[2]);
+    // Try to get specs from variant names first
+    if (product.product_variants && product.product_variants.length > 0) {
+      var v = product.product_variants[0];
+      if (v.name) {
+        var vparts = v.name.split(/[|\/]/).map(function (s) { return s.trim(); }).filter(Boolean);
+        specs = vparts.slice(0, 3);
+      }
+    }
+    // Fallback: parse common spec patterns from name
+    if (specs.length === 0 && product.name) {
+      var ramMatch = product.name.match(/(\d+\s*GB)\s*(RAM)?/i);
+      var storageMatch = product.name.match(/(\d+\s*(?:GB|TB)(?:\s*\+\s*\d+\s*(?:GB|TB))?)/i);
+      if (ramMatch) specs.push(ramMatch[0]);
+      if (storageMatch && storageMatch[0] !== ramMatch?.[0]) specs.push(storageMatch[0]);
+    }
+    // Final fallback: use category name
+    if (specs.length === 0 && product.category_name) {
+      specs.push(product.category_name);
     }
 
     var specsHtml = specs.slice(0, 3).map(function (s) {
@@ -165,22 +178,35 @@
     var fallbackBg = product.brand ? esc(product.brand.charAt(0)) : '💻';
     return '<div class="pk-product-card pk-reveal" style="transition-delay:' + (index * 0.06) + 's">' +
       '<div class="pk-product-card-img">' +
-        '<a href="/product/' + esc(product.slug) + '">' +
+        '<a href="/pages/product?slug=' + esc(product.slug) + '">' +
           '<img data-src="' + esc(imgUrl) + '" src="' + esc(imgUrl) + '" alt="' + esc(product.name) + '" loading="lazy" onerror="this.onerror=null;this.style.display=\'none\';this.parentElement.insertAdjacentHTML(\'beforeend\',\'<div class=pk-product-img-fallback><span>' + fallbackBg + '</span></div>\');">' +
         '</a>' +
         badgeHtml +
         '<div class="pk-product-card-actions">' +
           '<button class="pk-product-card-action" onclick="event.preventDefault();toggleWishlistUI(\'' + esc(product.id) + '\',this)" title="Wishlist">' + ICONS.heart + '</button>' +
-          '<a href="/product/' + esc(product.slug) + '" class="pk-product-card-action" title="View">' + ICONS.arrowRight + '</a>' +
+          '<a href="/pages/product?slug=' + esc(product.slug) + '" class="pk-product-card-action" title="View">' + ICONS.arrowRight + '</a>' +
         '</div>' +
       '</div>' +
       '<div class="pk-product-card-body">' +
         '<div class="pk-product-card-brand">' + esc(product.brand || product.category_name || '') + '</div>' +
-        '<h4 class="pk-product-card-title"><a href="/product/' + esc(product.slug) + '">' + esc(product.name) + '</a></h4>' +
+        '<h4 class="pk-product-card-title"><a href="/pages/product?slug=' + esc(product.slug) + '">' + esc(product.name) + '</a></h4>' +
         '<div class="pk-product-card-specs">' + specsHtml + '</div>' +
         '<div class="pk-product-card-rating">' + starsHtml + '<span class="count">(' + (product.review_count || 0) + ')</span></div>' +
         '<div class="pk-product-card-footer">' +
-          '<div class="pk-product-card-price">' + formatPrice(product.price) +
+          '<div class="pk-product-card-price">' +
+            (function() {
+              var variants = product.product_variants || [];
+              if (variants.length > 1) {
+                // Multiple variants: show lowest price with 'From'
+                var prices = variants.map(function(v) { return v.price; }).filter(function(p) { return p > 0; });
+                var minPrice = prices.length > 0 ? Math.min.apply(null, prices) : product.price;
+                return '<span class="pk-price-from">From</span> ' + formatPrice(minPrice);
+              } else if (variants.length === 1) {
+                return formatPrice(variants[0].price);
+              } else {
+                return formatPrice(product.price);
+              }
+            })() +
             (product.compare_at_price > product.price ? '<span class="compare">' + formatPrice(product.compare_at_price) + '</span>' : '') +
           '</div>' +
           '<button class="pk-product-card-add" onclick="event.preventDefault();addToCart(\'' + esc(product.id) + '\',null,1).then(function(){showToast(\'Added to cart\',\'success\')})" title="Add to Cart">+</button>' +

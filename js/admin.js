@@ -38,14 +38,14 @@
     var sidebar = document.getElementById('admin-sidebar');
     if (!sidebar) return;
     var pages = [
-      { id: 'dashboard', label: 'Dashboard', icon: '📊', url: '/admin/dashboard.html' },
-      { id: 'products', label: 'Products', icon: '💻', url: '/admin/products.html' },
-      { id: 'categories', label: 'Categories', icon: '📁', url: '/admin/categories.html' },
-      { id: 'orders', label: 'Orders', icon: '📦', url: '/admin/orders.html' },
-      { id: 'customers', label: 'Customers', icon: '👥', url: '/admin/customers.html' },
-      { id: 'coupons', label: 'Coupons', icon: '🏷️', url: '/admin/coupons.html' },
-      { id: 'analytics', label: 'Analytics', icon: '📈', url: '/admin/analytics.html' },
-      { id: 'settings', label: 'Settings', icon: '⚙️', url: '/admin/settings.html' },
+      { id: 'dashboard', label: 'Dashboard', icon: '📊', url: '/admin/dashboard' },
+      { id: 'products', label: 'Products', icon: '💻', url: '/admin/products' },
+      { id: 'categories', label: 'Categories', icon: '📁', url: '/admin/categories' },
+      { id: 'orders', label: 'Orders', icon: '📦', url: '/admin/orders' },
+      { id: 'customers', label: 'Customers', icon: '👥', url: '/admin/customers' },
+      { id: 'coupons', label: 'Coupons', icon: '🏷️', url: '/admin/coupons' },
+      { id: 'analytics', label: 'Analytics', icon: '📈', url: '/admin/analytics' },
+      { id: 'settings', label: 'Settings', icon: '⚙️', url: '/admin/settings' },
     ];
 
     sidebar.innerHTML =

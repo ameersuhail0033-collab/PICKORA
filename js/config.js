@@ -44,18 +44,40 @@
     };
   };
 
-  /** Format a number as currency */
+  /** Format a number as currency — always use Intl for AED to avoid RTL collision */
   window.formatPrice = function formatPrice(amount, currency) {
     currency = currency || CONFIG.currency;
+    var num = Number(amount) || 0;
+    if (currency === 'AED') {
+      return 'AED ' + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
     var sym = CONFIG.currencySymbols[currency] || '$';
     var dec = CONFIG.currencyDecimals[currency] != null ? CONFIG.currencyDecimals[currency] : 2;
-    var num = Number(amount) || 0;
     return sym + num.toFixed(dec).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
   /** Parse a price string to cents integer */
   window.priceToCents = function priceToCents(amount) {
     return Math.round(Number(amount) * 100);
+  };
+
+  /** Convert a product_images.url (relative storage path) to a full Supabase storage URL */
+  window.productImageUrl = function productImageUrl(url) {
+    if (!url) return '';
+    // Already a full URL
+    if (url.indexOf('http') === 0) return url;
+    // Build full Supabase storage URL
+    var base = CONFIG.supabaseUrl;
+    if (!base) return url;
+    // Remove trailing slash from base
+    base = base.replace(/\/+$/, '');
+    return base + '/storage/v1/object/public/product-images/' + url.replace(/^\/+/, '');
+  };
+
+  /** Format price for display with currency code */
+  window.formatPriceAED = function formatPriceAED(amount) {
+    var num = Number(amount) || 0;
+    return 'AED ' + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
   /** Format a date string */
@@ -206,6 +228,8 @@
     document.querySelectorAll('.theme-toggle').forEach(function (btn) {
       btn.innerHTML = next === 'dark' ? '<i class="icon-sun"></i>' : '<i class="icon-moon"></i>';
     });
+    // Dispatch event for other modules to react
+    window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: next } }));
   };
 
   /** Generate skeleton HTML */
@@ -230,7 +254,7 @@
   /** Pagination helper */
   window.renderPagination = function renderPagination(page, totalPages, onChange) {
     if (totalPages <= 1) return '';
-    var html = '<div class="pagination">';
+    var html = '<div class="pk-pagination">';
     html += '<button class="page-btn" data-page="' + (page - 1) + '" ' + (page <= 1 ? 'disabled' : '') + ' aria-label="Previous">&laquo;</button>';
     var start = Math.max(1, page - 2);
     var end = Math.min(totalPages, page + 2);

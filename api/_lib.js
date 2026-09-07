@@ -73,12 +73,22 @@ async function nomodCreateCheckout({ referenceId, amount, currency, items, custo
   const apiKey = process.env.NOMOD_HOSTED_CHECKOUT_API_KEY;
   if (!apiKey) throw new Error('NOMOD_HOSTED_CHECKOUT_API_KEY not configured');
 
+  const customerIn = customer || {};
   const body = {
     reference_id: referenceId,
     amount: String(Number(amount).toFixed(2)), // Decimal string in main currency unit
     currency: currency || 'AED',
     items: items || [],
-    customer: customer || {},
+    customer: {
+      first_name: customerIn.first_name || '',
+      last_name: customerIn.last_name || '',
+      email: customerIn.email || '',
+      phone_number: customerIn.phone || customerIn.phone_number || '',
+      business_name: customerIn.business_name || '',
+    },
+    // Note: Nomod expects customer.phone_number (see official create-checkout docs).
+    // Callers pass { first_name, last_name, email, phone } — remapped here so every
+    // call site stays consistent with the documented schema.
     success_url: successUrl,
     failure_url: failureUrl,
     cancelled_url: cancelledUrl,

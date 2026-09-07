@@ -72,7 +72,10 @@
   window.signInWithGoogle = async function signInWithGoogle() {
     var result = await auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: C.siteUrl },
+      options: {
+        redirectTo: C.siteUrl + '/',
+        skipBrowserRedirect: false,
+      },
     });
     return result;
   };
@@ -81,7 +84,9 @@
   window.signInWithMagicLink = async function signInWithMagicLink(email) {
     var result = await auth.signInWithOtp({
       email: email,
-      options: { emailRedirectTo: C.siteUrl },
+      options: {
+        emailRedirectTo: C.siteUrl + '/pages/login.html',
+      },
     });
     return result;
   };
@@ -149,9 +154,9 @@
     if (_settingsCache) return _settingsCache;
     if (_settingsPromise) return _settingsPromise;
 
-    _settingsPromise = db.from('store_settings').select('*').limit(1).single();
+    _settingsPromise = db.from('store_settings').select('*').limit(1);
     var result = await _settingsPromise;
-    _settingsCache = result.data;
+    _settingsCache = result.data && result.data.length > 0 ? result.data[0] : null;
     _settingsPromise = null;
     return _settingsCache;
   };

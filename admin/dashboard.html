@@ -1,90 +1,371 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard — {{STORE_NAME}}</title>
-  <meta name="robots" content="noindex, nofollow">
-  <link rel="icon" type="image/png" href="/assets/icons/favicon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css">
-  <link rel="stylesheet" href="/css/admin.css">
-  <script src="/js/env.js"></script>
-  <script src="/js/config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pickora Admin — Dashboard</title>
+    <link rel="icon" href="/assets/icons/favicon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css">
+    <style>
+        /* Dashboard-specific overrides */
+        .dash-kpi .kpi-icon {
+            width: 36px; height: 36px; border-radius: 8px;
+            background: rgba(139,92,246,0.1); display: flex;
+            align-items: center; justify-content: center;
+            color: var(--admin-text-secondary); font-size: 16px;
+        }
+        .dash-kpi .kpi-label { font-size: 13px; color: var(--admin-text-secondary); }
+        .dash-kpi .kpi-value { font-size: 28px; font-weight: 700; color: var(--admin-text); letter-spacing: -0.5px; }
+        .dash-kpi .kpi-change { font-size: 12px; display: flex; align-items: center; gap: 4px; }
+        .dash-kpi .kpi-change.up { color: var(--admin-positive); }
+        .dash-kpi .kpi-change.down { color: var(--admin-negative); }
+        .dash-kpi { position: relative; }
+
+        /* Chart header */
+        .chart-panel { padding: 20px; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .chart-title { font-size: 18px; font-weight: 600; }
+        .chart-subtitle { font-size: 13px; color: var(--admin-text-secondary); margin-top: 4px; }
+        .chart-legend { display: flex; gap: 16px; font-size: 12px; color: var(--admin-text-secondary); margin-top: 8px; }
+        .chart-legend span { display: flex; align-items: center; gap: 6px; }
+        .chart-legend span::before { content:''; width:8px; height:8px; border-radius:2px; background:currentColor; }
+        .chart-legend .paid::before { background: #8b5cf6; }
+        .chart-legend .pending::before { background: #fbbf24; }
+        .chart-legend .refunded::before { background: #f87171; }
+
+        /* Period tabs */
+        .period-tabs { display: flex; gap: 4px; }
+        .period-tab {
+            padding: 4px 12px; border-radius: 6px; border: 1px solid var(--admin-border);
+            background: transparent; color: var(--admin-text-secondary); font-size: 12px;
+            cursor: pointer; font-weight: 500; transition: all 0.15s;
+        }
+        .period-tab:hover { border-color: var(--admin-primary); color: var(--admin-text); }
+        .period-tab.active { background: var(--admin-primary); color: white; border-color: var(--admin-primary); }
+
+        /* Canvas */
+        .chart-canvas { width: 100%; height: 200px; display: block; }
+
+        /* Funnel */
+        .funnel-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .funnel-label { width: 110px; font-size: 12px; color: var(--admin-text-secondary); text-align: right; flex-shrink: 0; }
+        .funnel-bar { flex: 1; height: 32px; background: var(--admin-surface-hover); border-radius: 4px; overflow: hidden; }
+        .funnel-fill { height: 100%; background: #8b5cf6; border-radius: 4px; display: flex; align-items: center; padding: 0 12px; font-size: 12px; font-weight: 500; color: white; transition: width 0.8s ease; min-width: 32px; }
+        .funnel-value { width: 48px; font-size: 13px; font-weight: 600; text-align: right; }
+
+        /* Donut */
+        .donut-wrap { display: flex; align-items: center; gap: 24px; padding: 16px; }
+        .donut-canvas { width: 150px; height: 150px; flex-shrink: 0; }
+        .donut-legend { flex: 1; }
+        .donut-legend-item { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--admin-border); font-size: 13px; }
+        .donut-legend-item:last-child { border-bottom: none; }
+        .donut-legend-color { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+        .donut-legend-label { flex: 1; color: var(--admin-text-secondary); }
+        .donut-legend-value { font-weight: 600; }
+        .donut-legend-pct { color: var(--admin-text-secondary); font-size: 12px; width: 40px; text-align: right; }
+
+        /* Lists */
+        .list-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--admin-border); }
+        .list-item:last-child { border-bottom: none; }
+        .list-thumb { width: 40px; height: 40px; border-radius: 6px; background: var(--admin-surface-hover); object-fit: cover; flex-shrink: 0; }
+        #topProducts .list-item { overflow: hidden; }
+        .list-info { flex: 1; }
+        .list-name { font-size: 13px; font-weight: 500; }
+        .list-sub { font-size: 12px; color: var(--admin-text-secondary); }
+        .list-stat { text-align: right; font-size: 12px; }
+        .list-stat strong { font-weight: 600; }
+        .order-status-badge { font-size: 11px; padding: 3px 8px; border-radius: 4px; }
+        .order-status-badge.pending { background: rgba(251,191,36,0.15); color: var(--admin-warning); }
+        .order-status-badge.completed { background: rgba(34,197,94,0.15); color: var(--admin-positive); }
+        .order-status-badge.cancelled { background: rgba(239,68,68,0.15); color: var(--admin-negative); }
+
+        /* Quick actions */
+        .quick-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 16px; }
+        .quick-action-btn {
+            display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+            background: var(--admin-surface-hover); border: 1px solid var(--admin-border);
+            border-radius: 6px; color: var(--admin-text); font-size: 12px;
+            cursor: pointer; text-decoration: none; transition: all 0.15s;
+        }
+        .quick-action-btn:hover { background: var(--admin-border); border-color: var(--admin-primary); }
+        .quick-action-btn i { font-size: 14px; color: var(--admin-primary); }
+
+        /* Skeleton */
+        .skel { background: linear-gradient(90deg, var(--admin-surface-hover) 25%, var(--admin-border) 50%, var(--admin-surface-hover) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
+        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+        .skel-line { height: 14px; margin-bottom: 8px; }
+        .skel-value { height: 32px; width: 120px; margin-bottom: 8px; }
+        .skel-chart { height: 200px; }
+        .skel-row { height: 48px; margin-bottom: 8px; }
+
+        /* Section header */
+        .dash-section-title {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 4px;
+        }
+        .dash-section-title h3 { font-size: 15px; font-weight: 600; margin: 0; }
+        .dash-section-title a { font-size: 12px; color: var(--admin-primary); text-decoration: none; }
+    </style>
 </head>
 <body>
-  <div class="admin-layout">
-    <aside class="admin-sidebar" id="admin-sidebar"></aside>
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="sidebar">
+        <div class="admin-sidebar-brand">
+            <img src="/assets/icons/favicon.png" alt="P" style="width:32px;height:32px;border-radius:8px;">
+        </div>
+        <nav class="admin-sidebar-nav">
+            <a href="/admin/dashboard.html" class="admin-nav-item active" data-tooltip="Overview">
+                <span class="nav-icon"><i class="fas fa-th-large"></i></span>
+                <span class="nav-label">Overview</span>
+            </a>
+            <a href="/admin/products.html" class="admin-nav-item" data-tooltip="Products">
+                <span class="nav-icon"><i class="fas fa-box"></i></span>
+                <span class="nav-label">Products</span>
+            </a>
+            <a href="/admin/orders.html" class="admin-nav-item" data-tooltip="Orders">
+                <span class="nav-icon"><i class="fas fa-shopping-cart"></i></span>
+                <span class="nav-label">Orders</span>
+            </a>
+            <a href="/admin/customers.html" class="admin-nav-item" data-tooltip="Customers">
+                <span class="nav-icon"><i class="fas fa-users"></i></span>
+                <span class="nav-label">Customers</span>
+            </a>
+            <a href="/admin/categories.html" class="admin-nav-item" data-tooltip="Categories">
+                <span class="nav-icon"><i class="fas fa-tags"></i></span>
+                <span class="nav-label">Categories</span>
+            </a>
+            <a href="/admin/coupons.html" class="admin-nav-item" data-tooltip="Coupons">
+                <span class="nav-icon"><i class="fas fa-ticket-alt"></i></span>
+                <span class="nav-label">Coupons</span>
+            </a>
+            <a href="/admin/analytics.html" class="admin-nav-item" data-tooltip="Analytics">
+                <span class="nav-icon"><i class="fas fa-chart-bar"></i></span>
+                <span class="nav-label">Analytics</span>
+            </a>
+            <a href="/admin/settings.html" class="admin-nav-item" data-tooltip="Settings">
+                <span class="nav-icon"><i class="fas fa-cog"></i></span>
+                <span class="nav-label">Settings</span>
+            </a>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <a href="/" class="admin-nav-item" data-tooltip="View Store">
+                <span class="nav-icon"><i class="fas fa-external-link-alt"></i></span>
+                <span class="nav-label">Store</span>
+            </a>
+            <button class="admin-nav-item" id="logoutBtn" data-tooltip="Logout">
+                <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span>
+                <span class="nav-label">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main content -->
     <main class="admin-main">
-      <div class="admin-topbar">
-        <div>
-          <h1>Dashboard</h1>
-          <p style="color:var(--text-muted);font-size:0.9rem;">Welcome back! Here's your store overview.</p>
-        </div>
-        <div class="admin-topbar-actions">
-          <button class="theme-toggle btn btn-secondary btn-sm" onclick="toggleTheme()">🌓 Theme</button>
-        </div>
-      </div>
+        <!-- Top bar -->
+        <header class="admin-topbar">
+            <div class="admin-topbar-left">
+                <div class="admin-topbar-breadcrumb">
+                    <i class="fas fa-th-large"></i>
+                    <span>Overview</span>
+                </div>
+            </div>
+            <div class="admin-topbar-right">
+                <div class="admin-topbar-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search..." id="globalSearch">
+                </div>
+                <button class="admin-topbar-icon" title="Notifications">
+                    <i class="fas fa-bell"></i>
+                </button>
+                <div class="admin-topbar-avatar" id="adminAvatar" title="Admin">
+                    <i class="fas fa-user"></i>
+                </div>
+                <a href="/admin/products.html?action=new" class="admin-btn-primary" style="font-size:12px;padding:6px 14px;">
+                    <i class="fas fa-plus"></i> New Product
+                </a>
+            </div>
+        </header>
 
-      <!-- KPI Cards -->
-      <div class="kpi-grid" id="kpi-grid">
-        <div class="kpi-card glass-card"><div class="kpi-card-header"><span class="kpi-card-label">Total Revenue</span><div class="kpi-card-icon green">💰</div></div><div class="kpi-card-value" id="kpi-revenue">$0</div></div>
-        <div class="kpi-card glass-card"><div class="kpi-card-header"><span class="kpi-card-label">Total Orders</span><div class="kpi-card-icon purple">📦</div></div><div class="kpi-card-value" id="kpi-orders">0</div></div>
-        <div class="kpi-card glass-card"><div class="kpi-card-header"><span class="kpi-card-label">Avg Order Value</span><div class="kpi-card-icon blue">📊</div></div><div class="kpi-card-value" id="kpi-aov">$0</div></div>
-        <div class="kpi-card glass-card"><div class="kpi-card-header"><span class="kpi-card-label">Total Customers</span><div class="kpi-card-icon orange">👥</div></div><div class="kpi-card-value" id="kpi-customers">0</div></div>
-        <div class="kpi-card glass-card"><div class="kpi-card-header"><span class="kpi-card-label">Pending Orders</span><div class="kpi-card-icon red">⏳</div></div><div class="kpi-card-value" id="kpi-pending">0</div></div>
-        <div class="kpi-card glass-card"><div class="kpi-card-header"><span class="kpi-card-label">Low Stock</span><div class="kpi-card-icon orange">⚠️</div></div><div class="kpi-card-value" id="kpi-lowstock">0</div></div>
-      </div>
+        <!-- Dashboard content -->
+        <div class="admin-content">
+            <!-- Greeting -->
+            <div class="admin-greeting" id="dashGreeting">
+                <h2>Welcome back! <span style="display:inline">&#x1F44B;</span></h2>
+                <p>Here's what's happening with your store today.</p>
+            </div>
 
-      <!-- Revenue Chart -->
-      <div class="chart-container glass-card">
-        <div class="chart-header">
-          <h3>Revenue (Last 30 Days)</h3>
-          <div class="chart-filters">
-            <button class="btn btn-ghost btn-sm active" onclick="loadChart('day',this)">Daily</button>
-            <button class="btn btn-ghost btn-sm" onclick="loadChart('week',this)">Weekly</button>
-          </div>
-        </div>
-        <div class="chart-canvas-wrap">
-          <canvas id="revenue-chart"></canvas>
-        </div>
-      </div>
+            <!-- KPI Cards -->
+            <div class="admin-kpi-row" id="kpiGrid">
+                <div class="admin-kpi-card dash-kpi" id="kpiRevenue">
+                    <div class="admin-kpi-header">
+                        <div class="admin-kpi-icon"><i class="fas fa-dollar-sign"></i></div>
+                        <div class="admin-kpi-label">Total Revenue</div>
+                    </div>
+                    <div class="admin-kpi-value" id="kpiRevenueValue"><span class="skel skel-value"></span></div>
+                    <div class="admin-kpi-change" id="kpiRevenueChange"></div>
+                </div>
+                <div class="admin-kpi-card dash-kpi" id="kpiOrders">
+                    <div class="admin-kpi-header">
+                        <div class="admin-kpi-icon"><i class="fas fa-shopping-bag"></i></div>
+                        <div class="admin-kpi-label">Orders</div>
+                    </div>
+                    <div class="admin-kpi-value" id="kpiOrdersValue"><span class="skel skel-value"></span></div>
+                    <div class="admin-kpi-change" id="kpiOrdersChange"></div>
+                </div>
+                <div class="admin-kpi-card dash-kpi" id="kpiAOV">
+                    <div class="admin-kpi-header">
+                        <div class="admin-kpi-icon"><i class="fas fa-receipt"></i></div>
+                        <div class="admin-kpi-label">Average Order Value</div>
+                    </div>
+                    <div class="admin-kpi-value" id="kpiAOVValue"><span class="skel skel-value"></span></div>
+                    <div class="admin-kpi-change" id="kpiAOVChange"></div>
+                </div>
+                <div class="admin-kpi-card dash-kpi" id="kpiPending">
+                    <div class="admin-kpi-header">
+                        <div class="admin-kpi-icon"><i class="fas fa-clock"></i></div>
+                        <div class="admin-kpi-label">Pending Orders</div>
+                    </div>
+                    <div class="admin-kpi-value" id="kpiPendingValue"><span class="skel skel-value"></span></div>
+                    <div class="admin-kpi-change" id="kpiPendingChange"></div>
+                </div>
+            </div>
 
-      <!-- Recent Orders -->
-      <div class="admin-table-card glass-card">
-        <div class="admin-table-header">
-          <h3>Recent Orders</h3>
-          <a href="/admin/orders.html" class="btn btn-ghost btn-sm">View All →</a>
-        </div>
-        <div class="table-container" style="border:none;border-radius:0;">
-          <table class="table" id="recent-orders-table">
-            <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Payment</th><th>Date</th></tr></thead>
-            <tbody id="recent-orders"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);">Loading...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
+            <!-- Sales Chart + Brand Revenue -->
+            <div class="admin-dashboard-grid">
+                <div class="admin-card chart-panel">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title" id="salesChartTitle">Total Sales</div>
+                            <div class="chart-subtitle" id="salesChartSubtitle">Last 30 days</div>
+                        </div>
+                        <div class="period-tabs" id="periodTabs">
+                            <button class="period-tab" data-days="14">14D</button>
+                            <button class="period-tab active" data-days="30">1M</button>
+                            <button class="period-tab" data-days="90">3M</button>
+                            <button class="period-tab" data-days="180">6M</button>
+                        </div>
+                    </div>
+                    <div class="chart-legend">
+                        <span class="paid">Paid</span>
+                        <span class="pending">Pending</span>
+                        <span class="refunded">Refunded</span>
+                    </div>
+                    <canvas class="chart-canvas" id="salesChart"></canvas>
+                </div>
+                <div class="admin-card chart-panel">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Revenue by Brand</div>
+                            <div class="chart-subtitle">Product count (no orders yet)</div>
+                        </div>
+                    </div>
+                    <canvas class="chart-canvas" id="brandChart"></canvas>
+                </div>
+            </div>
 
-      <!-- Top Products -->
-      <div class="admin-table-card glass-card" style="margin-top:1.5rem;">
-        <div class="admin-table-header">
-          <h3>Top Products</h3>
+            <!-- Funnel + Donut -->
+            <div class="admin-dashboard-grid">
+                <div class="admin-card" style="padding:20px;">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Order Funnel</div>
+                            <div class="chart-subtitle">Order lifecycle stages</div>
+                        </div>
+                    </div>
+                    <div id="funnelChart">
+                        <div class="skel skel-chart"></div>
+                    </div>
+                </div>
+                <div class="admin-card" style="padding:20px;">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Order Status</div>
+                            <div class="chart-subtitle">Distribution</div>
+                        </div>
+                    </div>
+                    <div id="donutChart">
+                        <div class="skel skel-chart" style="width:160px;margin:0 auto;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Products + Low Stock + Recent Orders -->
+            <div class="admin-dashboard-grid-three">
+                <div class="admin-card" style="padding:16px;">
+                    <div class="dash-section-title">
+                        <h3>Top Products</h3>
+                    </div>
+                    <div id="topProducts">
+                        <div class="skel skel-row"></div>
+                        <div class="skel skel-row"></div>
+                        <div class="skel skel-row"></div>
+                        <div class="skel skel-row"></div>
+                        <div class="skel skel-row"></div>
+                    </div>
+                </div>
+                <div class="admin-card" style="padding:16px;">
+                    <div class="dash-section-title">
+                        <h3>Low Stock</h3>
+                    </div>
+                    <div id="lowStock">
+                        <div class="skel skel-row"></div>
+                        <div class="skel skel-row"></div>
+                        <div class="skel skel-row"></div>
+                    </div>
+                </div>
+                <div class="admin-card" style="padding:16px;">
+                    <div class="dash-section-title">
+                        <h3>Recent Orders</h3>
+                        <a href="/admin/orders.html">View All</a>
+                    </div>
+                    <div id="recentOrders">
+                        <div class="skel skel-row"></div>
+                        <div class="skel skel-row"></div>
+                        <div class="skel skel-row"></div>
+                        <div class="skel skel-row"></div>
+                        <div class="skel skel-row"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="admin-card" style="padding:16px;">
+                <div class="dash-section-title" style="margin-bottom:12px;">
+                    <h3>Quick Actions</h3>
+                </div>
+                <div class="quick-actions" style="padding:0;">
+                    <a href="/admin/products.html?action=new" class="quick-action-btn">
+                        <i class="fas fa-plus"></i> Add Product
+                    </a>
+                    <a href="/admin/orders.html?status=pending" class="quick-action-btn">
+                        <i class="fas fa-clock"></i> Review Pending Orders
+                    </a>
+                    <a href="/admin/coupons.html" class="quick-action-btn">
+                        <i class="fas fa-ticket-alt"></i> Manage Coupons
+                    </a>
+                    <a href="/admin/settings.html" class="quick-action-btn">
+                        <i class="fas fa-cog"></i> Store Settings
+                    </a>
+                </div>
+            </div>
         </div>
-        <div class="table-container" style="border:none;border-radius:0;">
-          <table class="table">
-            <thead><tr><th>Product</th><th>Sales</th><th>Revenue</th></tr></thead>
-            <tbody id="top-products"><tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--text-muted);">Loading...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
     </main>
-  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script>
-  <script src="/js/admin-guard.js"></script>
-  <script src="/js/admin.js"></script>
-  <script>document.addEventListener('DOMContentLoaded',function(){requireAdmin(function(){initAdminSidebar('dashboard');loadDashboard();});});</script>
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/env.js"></script>
+    <script src="/js/config.js"></script>
+    <script src="/js/supabase.js"></script>
+    <script src="/js/admin-guard.js"></script>
+    <script src="/js/admin-dashboard.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        requireAdmin(function () {
+          if (typeof initDashboard === 'function') initDashboard();
+        });
+      });
+    </script>
 </body>
 </html>

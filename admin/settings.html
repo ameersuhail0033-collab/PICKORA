@@ -1,97 +1,166 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Store Settings — Admin — {{STORE_NAME}}</title>
-  <meta name="robots" content="noindex, nofollow">
-  <link rel="icon" type="image/png" href="/assets/icons/favicon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css">
-  <link rel="stylesheet" href="/css/admin.css">
-  <script src="/js/env.js"></script><script src="/js/config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Settings — Pickora Admin</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/png" href="/assets/icons/favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css">
+    <style>
+        .settings-section { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius); margin-bottom: 16px; overflow: hidden; }
+        .settings-section-header { padding: 16px 20px; border-bottom: 1px solid var(--admin-border); }
+        .settings-section-header h3 { font-size: 14px; font-weight: 600; color: var(--admin-text); margin: 0; display: flex; align-items: center; gap: 8px; }
+        .settings-section-body { padding: 20px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-label { font-size: 12px; font-weight: 500; color: var(--admin-text-secondary); }
+        .form-input, .form-select, .form-textarea { background: var(--admin-bg); border: 1px solid var(--admin-border); border-radius: var(--admin-radius-sm); padding: 10px 12px; color: var(--admin-text); font-size: 13px; outline: none; transition: border-color 0.15s; font-family: inherit; width: 100%; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--admin-secondary); }
+        .form-textarea { resize: vertical; min-height: 60px; }
+        .form-check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--admin-text-secondary); cursor: pointer; }
+        .form-check input[type="checkbox"] { accent-color: var(--admin-secondary); }
+        .form-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 16px 20px; border-top: 1px solid var(--admin-border); }
+        .btn-cancel { padding: 8px 16px; border-radius: var(--admin-radius); border: 1px solid var(--admin-border); background: transparent; color: var(--admin-text-secondary); font-size: 13px; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+        .btn-cancel:hover { border-color: var(--admin-text-secondary); color: var(--admin-text); }
+        .btn-save { padding: 8px 20px; border-radius: var(--admin-radius); border: none; background: var(--admin-secondary); color: white; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+        .btn-save:hover { background: #7c3aed; }
+        .page-subtitle { font-size: 13px; color: var(--admin-text-muted); margin-bottom: 20px; }
+        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
+    </style>
 </head>
 <body>
-  <div class="admin-layout">
-    <aside class="admin-sidebar" id="admin-sidebar"></aside>
+    <aside class="admin-sidebar" id="sidebar">
+        <div class="admin-sidebar-brand">
+            <img src="/assets/icons/favicon.png" alt="P" style="width:32px;height:32px;border-radius:8px;">
+        </div>
+        <nav class="admin-sidebar-nav">
+            <a href="/admin/dashboard.html" class="admin-nav-item" data-tooltip="Overview"><span class="nav-icon"><i class="fas fa-th-large"></i></span><span class="nav-label">Overview</span></a>
+            <a href="/admin/products.html" class="admin-nav-item" data-tooltip="Products"><span class="nav-icon"><i class="fas fa-box"></i></span><span class="nav-label">Products</span></a>
+            <a href="/admin/orders.html" class="admin-nav-item" data-tooltip="Orders"><span class="nav-icon"><i class="fas fa-shopping-cart"></i></span><span class="nav-label">Orders</span></a>
+            <a href="/admin/customers.html" class="admin-nav-item" data-tooltip="Customers"><span class="nav-icon"><i class="fas fa-users"></i></span><span class="nav-label">Customers</span></a>
+            <a href="/admin/categories.html" class="admin-nav-item" data-tooltip="Categories"><span class="nav-icon"><i class="fas fa-tags"></i></span><span class="nav-label">Categories</span></a>
+            <a href="/admin/coupons.html" class="admin-nav-item" data-tooltip="Coupons"><span class="nav-icon"><i class="fas fa-ticket-alt"></i></span><span class="nav-label">Coupons</span></a>
+            <a href="/admin/analytics.html" class="admin-nav-item" data-tooltip="Analytics"><span class="nav-icon"><i class="fas fa-chart-bar"></i></span><span class="nav-label">Analytics</span></a>
+            <a href="/admin/settings.html" class="admin-nav-item active" data-tooltip="Settings"><span class="nav-icon"><i class="fas fa-cog"></i></span><span class="nav-label">Settings</span></a>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <a href="/" class="admin-nav-item" data-tooltip="View Store"><span class="nav-icon"><i class="fas fa-external-link-alt"></i></span><span class="nav-label">Store</span></a>
+            <button class="admin-nav-item" id="logoutBtn" data-tooltip="Logout"><span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span><span class="nav-label">Logout</span></button>
+        </div>
+    </aside>
+
     <main class="admin-main">
-      <div class="admin-topbar"><h1>Store Settings</h1><p style="color:var(--text-muted);font-size:0.9rem;">White-label control panel — changes apply site-wide.</p></div>
+        <header class="admin-topbar">
+            <div class="admin-topbar-left">
+                <div class="admin-topbar-breadcrumb"><i class="fas fa-cog"></i><span>Settings</span></div>
+            </div>
+            <div class="admin-topbar-right">
+                <button class="admin-topbar-icon" title="Notifications"><i class="fas fa-bell"></i></button>
+                <div class="admin-avatar" id="adminAvatar" title="Admin"><i class="fas fa-user"></i></div>
+            </div>
+        </header>
 
-      <form id="settings-form" onsubmit="saveSettings(event)">
-        <!-- Brand Identity -->
-        <div class="admin-form-card glass-card" style="margin-bottom:1.5rem;">
-          <h3 style="margin-bottom:1.25rem;">🎨 Brand Identity</h3>
-          <div class="admin-form-grid">
-            <div class="form-group"><label class="form-label">Store Name</label><input class="form-input" name="store_name" id="sf-name"></div>
-            <div class="form-group"><label class="form-label">Company Name</label><input class="form-input" name="company_name" id="sf-company"></div>
-            <div class="form-group full-width"><label class="form-label">Logo URL</label><input class="form-input" name="logo_url" id="sf-logo" placeholder="https://..."></div>
-            <div class="form-group full-width"><label class="form-label">Favicon URL</label><input class="form-input" name="favicon_url" id="sf-favicon" placeholder="https://..."></div>
-          </div>
-        </div>
+        <div class="admin-content">
+            <div class="page-subtitle">Configure your store branding, contact info, and site preferences.</div>
 
-        <!-- Colors -->
-        <div class="admin-form-card glass-card" style="margin-bottom:1.5rem;">
-          <h3 style="margin-bottom:1.25rem;">🌈 Brand Colors</h3>
-          <div class="admin-form-grid">
-            <div class="form-group"><label class="form-label">Primary Color</label><input type="color" class="form-input" name="primary_color" id="sf-primary" style="height:44px;padding:4px;"></div>
-            <div class="form-group"><label class="form-label">Secondary Color</label><input type="color" class="form-input" name="secondary_color" id="sf-secondary" style="height:44px;padding:4px;"></div>
-            <div class="form-group"><label class="form-label">Accent Color</label><input type="color" class="form-input" name="accent_color" id="sf-accent" style="height:44px;padding:4px;"></div>
-          </div>
-        </div>
+            <form id="settings-form" onsubmit="saveSettings(event)">
+                <!-- Brand Identity -->
+                <div class="settings-section">
+                    <div class="settings-section-header"><h3><i class="fas fa-palette" style="color:var(--admin-secondary);"></i> Brand Identity</h3></div>
+                    <div class="settings-section-body">
+                        <div class="form-grid">
+                            <div class="form-group"><label class="form-label">Store Name</label><input class="form-input" name="store_name" id="sf-name"></div>
+                            <div class="form-group"><label class="form-label">Company Name</label><input class="form-input" name="company_name" id="sf-company"></div>
+                            <div class="form-group full"><label class="form-label">Logo URL</label><input class="form-input" name="logo_url" id="sf-logo" placeholder="https://..."></div>
+                            <div class="form-group full"><label class="form-label">Favicon URL</label><input class="form-input" name="favicon_url" id="sf-favicon" placeholder="https://..."></div>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Contact -->
-        <div class="admin-form-card glass-card" style="margin-bottom:1.5rem;">
-          <h3 style="margin-bottom:1.25rem;">📧 Contact & Shipping</h3>
-          <div class="admin-form-grid">
-            <div class="form-group"><label class="form-label">Support Email</label><input class="form-input" type="email" name="support_email" id="sf-email"></div>
-            <div class="form-group"><label class="form-label">Support Phone</label><input class="form-input" name="support_phone" id="sf-phone"></div>
-            <div class="form-group full-width"><label class="form-label">Address</label><input class="form-input" name="address" id="sf-address"></div>
-            <div class="form-group"><label class="form-label">Currency</label><select class="form-select" name="currency" id="sf-currency"><option value="USD">USD</option><option value="AED">AED</option><option value="EUR">EUR</option><option value="GBP">GBP</option></select></div>
-            <div class="form-group"><label class="form-label">Tax Rate (%)</label><input class="form-input" type="number" step="0.01" name="tax_rate" id="sf-tax"></div>
-            <div class="form-group"><label class="form-label">Shipping Cost</label><input class="form-input" type="number" step="0.01" name="shipping_cost" id="sf-shipping"></div>
-            <div class="form-group"><label class="form-label">Free Shipping Threshold</label><input class="form-input" type="number" step="0.01" name="free_shipping_threshold" id="sf-freeship"></div>
-          </div>
-        </div>
+                <!-- Brand Colors -->
+                <div class="settings-section">
+                    <div class="settings-section-header"><h3><i class="fas fa-swatchbook" style="color:var(--admin-secondary);"></i> Brand Colors</h3></div>
+                    <div class="settings-section-body">
+                        <div class="form-grid">
+                            <div class="form-group"><label class="form-label">Primary Color</label><input type="color" class="form-input" name="primary_color" id="sf-primary" style="height:44px;padding:4px;"></div>
+                            <div class="form-group"><label class="form-label">Secondary Color</label><input type="color" class="form-input" name="secondary_color" id="sf-secondary" style="height:44px;padding:4px;"></div>
+                            <div class="form-group"><label class="form-label">Accent Color</label><input type="color" class="form-input" name="accent_color" id="sf-accent" style="height:44px;padding:4px;"></div>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Social -->
-        <div class="admin-form-card glass-card" style="margin-bottom:1.5rem;">
-          <h3 style="margin-bottom:1.25rem;">🌐 Social Links</h3>
-          <div class="admin-form-grid">
-            <div class="form-group"><label class="form-label">Facebook</label><input class="form-input" name="social_facebook" id="sf-facebook"></div>
-            <div class="form-group"><label class="form-label">Instagram</label><input class="form-input" name="social_instagram" id="sf-instagram"></div>
-            <div class="form-group"><label class="form-label">Twitter / X</label><input class="form-input" name="social_twitter" id="sf-twitter"></div>
-            <div class="form-group"><label class="form-label">YouTube</label><input class="form-input" name="social_youtube" id="sf-youtube"></div>
-          </div>
-        </div>
+                <!-- Contact & Shipping -->
+                <div class="settings-section">
+                    <div class="settings-section-header"><h3><i class="fas fa-envelope" style="color:var(--admin-secondary);"></i> Contact & Shipping</h3></div>
+                    <div class="settings-section-body">
+                        <div class="form-grid">
+                            <div class="form-group"><label class="form-label">Support Email</label><input class="form-input" type="email" name="support_email" id="sf-email"></div>
+                            <div class="form-group"><label class="form-label">Support Phone</label><input class="form-input" name="support_phone" id="sf-phone"></div>
+                            <div class="form-group full"><label class="form-label">Address</label><input class="form-input" name="address" id="sf-address"></div>
+                            <div class="form-group"><label class="form-label">Currency</label><select class="form-select" name="currency" id="sf-currency"><option value="USD">USD</option><option value="AED">AED</option><option value="EUR">EUR</option><option value="GBP">GBP</option></select></div>
+                            <div class="form-group"><label class="form-label">Tax Rate (%)</label><input class="form-input" type="number" step="0.01" name="tax_rate" id="sf-tax"></div>
+                            <div class="form-group"><label class="form-label">Shipping Cost</label><input class="form-input" type="number" step="0.01" name="shipping_cost" id="sf-shipping"></div>
+                            <div class="form-group"><label class="form-label">Free Shipping Threshold</label><input class="form-input" type="number" step="0.01" name="free_shipping_threshold" id="sf-freeship"></div>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- SEO -->
-        <div class="admin-form-card glass-card" style="margin-bottom:1.5rem;">
-          <h3 style="margin-bottom:1.25rem;">🔍 SEO</h3>
-          <div class="admin-form-grid">
-            <div class="form-group full-width"><label class="form-label">Meta Description</label><textarea class="form-textarea" name="meta_description" id="sf-meta" rows="2"></textarea></div>
-            <div class="form-group full-width"><label class="form-label">OG Image URL</label><input class="form-input" name="og_image_url" id="sf-og"></div>
-          </div>
-        </div>
+                <!-- Social Links -->
+                <div class="settings-section">
+                    <div class="settings-section-header"><h3><i class="fas fa-globe" style="color:var(--admin-secondary);"></i> Social Links</h3></div>
+                    <div class="settings-section-body">
+                        <div class="form-grid">
+                            <div class="form-group"><label class="form-label">Facebook</label><input class="form-input" name="social_facebook" id="sf-facebook"></div>
+                            <div class="form-group"><label class="form-label">Instagram</label><input class="form-input" name="social_instagram" id="sf-instagram"></div>
+                            <div class="form-group"><label class="form-label">Twitter / X</label><input class="form-input" name="social_twitter" id="sf-twitter"></div>
+                            <div class="form-group"><label class="form-label">YouTube</label><input class="form-input" name="social_youtube" id="sf-youtube"></div>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Maintenance -->
-        <div class="admin-form-card glass-card" style="margin-bottom:1.5rem;">
-          <h3 style="margin-bottom:1.25rem;">🔧 Maintenance</h3>
-          <div class="form-group"><label class="form-check"><input type="checkbox" name="maintenance_mode" id="sf-maintenance"> Enable maintenance mode</label></div>
-        </div>
+                <!-- SEO -->
+                <div class="settings-section">
+                    <div class="settings-section-header"><h3><i class="fas fa-search" style="color:var(--admin-secondary);"></i> SEO</h3></div>
+                    <div class="settings-section-body">
+                        <div class="form-grid">
+                            <div class="form-group full"><label class="form-label">Meta Description</label><textarea class="form-textarea" name="meta_description" id="sf-meta" rows="2"></textarea></div>
+                            <div class="form-group full"><label class="form-label">OG Image URL</label><input class="form-input" name="og_image_url" id="sf-og"></div>
+                        </div>
+                    </div>
+                </div>
 
-        <div style="display:flex;justify-content:flex-end;gap:0.75rem;">
-          <button type="button" class="btn btn-secondary" onclick="loadSettingsForm()">Reset</button>
-          <button type="submit" class="btn btn-primary">Save Settings</button>
+                <!-- Maintenance -->
+                <div class="settings-section">
+                    <div class="settings-section-header"><h3><i class="fas fa-wrench" style="color:var(--admin-secondary);"></i> Maintenance</h3></div>
+                    <div class="settings-section-body">
+                        <div class="form-group"><label class="form-check"><input type="checkbox" name="maintenance_mode" id="sf-maintenance"> Enable maintenance mode</label></div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="loadSettingsForm()">Reset</button>
+                    <button type="submit" class="btn-save">Save Settings</button>
+                </div>
+            </form>
         </div>
-      </form>
     </main>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script>
-  <script src="/js/admin-guard.js"></script>
-  <script src="/js/admin.js"></script>
-  <script>document.addEventListener('DOMContentLoaded',function(){requireAdmin(function(){initAdminSidebar('settings');loadSettingsForm();});});</script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/env.js"></script>
+    <script src="/js/config.js"></script>
+    <script src="/js/supabase.js"></script>
+    <script src="/js/admin-guard.js"></script>
+    <script src="/js/settings.js"></script>
+    <script src="/js/admin.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('logoutBtn').addEventListener('click', async function() { await db.auth.signOut(); window.location.href = '/pages/login.html'; });
+        requireAdmin(function() { loadSettingsForm(); });
+    });
+    </script>
 </body>
 </html>

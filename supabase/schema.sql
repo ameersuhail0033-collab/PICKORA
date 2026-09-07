@@ -156,6 +156,9 @@ CREATE TABLE IF NOT EXISTS product_images (
   is_primary BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT now()
 );
+-- UNIQUE constraint for importer upserts
+CREATE UNIQUE INDEX IF NOT EXISTS idx_product_images_product_url_unique
+  ON public.product_images(product_id, url);
 
 -- product_variants
 CREATE TABLE IF NOT EXISTS product_variants (
@@ -175,6 +178,9 @@ CREATE TABLE IF NOT EXISTS product_variants (
 );
 CREATE TRIGGER trg_product_variants_updated_at BEFORE UPDATE ON product_variants
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+-- UNIQUE constraint for importer upserts
+CREATE UNIQUE INDEX IF NOT EXISTS idx_product_variants_sku_unique
+  ON public.product_variants(sku);
 
 -- addresses
 CREATE TABLE IF NOT EXISTS addresses (

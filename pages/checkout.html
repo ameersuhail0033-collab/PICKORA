@@ -4,70 +4,429 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Checkout — Pickora</title>
-  <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/png" href="/assets/icons/favicon.png">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css">
-  <link rel="stylesheet" href="/css/checkout.css">
-  <script src="/js/env.js"></script>
-  <script src="/js/config.js"></script>
+  <style>
+    .checkout-page { padding: 100px 0 48px; min-height: 60vh; }
+    .checkout-breadcrumb { font-size: 0.85rem; color: var(--pk-text-muted); margin-bottom: 8px; }
+    .checkout-breadcrumb a { color: var(--pk-text-secondary); text-decoration: none; }
+
+    /* Progress Steps */
+    .progress-steps { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 32px; }
+    .progress-step { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--pk-text-muted); font-weight: 500; }
+    .progress-step.active { color: var(--pk-violet); font-weight: 600; }
+    .progress-step.completed { color: var(--pk-success); }
+    .progress-step-num { width: 32px; height: 32px; border-radius: 50%; border: 2px solid currentColor; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.82rem; }
+    .progress-step.active .progress-step-num { background: var(--pk-violet); border-color: var(--pk-violet); color: #fff; }
+    .progress-step.completed .progress-step-num { background: var(--pk-success); border-color: var(--pk-success); color: #fff; }
+    .progress-connector { width: 40px; height: 2px; background: var(--pk-border); margin: 0 8px; }
+
+    /* Page Title */
+    .checkout-title { font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 800; color: var(--pk-navy); margin-bottom: 8px; }
+    .checkout-title span { color: var(--pk-violet); }
+    .checkout-subtitle { font-size: 0.95rem; color: var(--pk-text-secondary); margin-bottom: 32px; }
+
+    /* Two-column layout */
+    .checkout-layout { display: grid; grid-template-columns: 1fr 400px; gap: 24px; align-items: start; }
+
+    /* Form Sections */
+    .checkout-section { background: var(--pk-surface); border-radius: var(--radius-xl); padding: 28px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+    .checkout-section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .checkout-section-icon { width: 40px; height: 40px; border-radius: var(--radius-lg); background: var(--pk-bg); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .checkout-section-title { font-size: 1.05rem; font-weight: 700; color: var(--pk-navy); }
+    .checkout-section-desc { font-size: 0.85rem; color: var(--pk-text-muted); margin-top: 2px; }
+
+    /* Form Grid */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label { font-size: 0.82rem; font-weight: 500; color: var(--pk-text-secondary); }
+    .form-input { padding: 12px 14px; background: var(--pk-bg); border: 1.5px solid var(--pk-border); border-radius: var(--radius-md); font-size: 0.9rem; color: var(--pk-navy); outline: none; transition: border-color 0.15s; }
+    .form-input:focus { border-color: var(--pk-violet); }
+    .form-input.error { border-color: var(--pk-danger); }
+    .form-error { font-size: 0.78rem; color: var(--pk-danger); margin-top: 4px; }
+    .form-select { padding: 12px 14px; background: var(--pk-bg); border: 1.5px solid var(--pk-border); border-radius: var(--radius-md); font-size: 0.9rem; color: var(--pk-navy); outline: none; cursor: pointer; }
+    .form-select:focus { border-color: var(--pk-violet); }
+
+    /* Delivery Options */
+    .delivery-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .delivery-option { padding: 16px; border: 2px solid var(--pk-border); border-radius: var(--radius-lg); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 12px; }
+    .delivery-option:hover { border-color: var(--pk-violet); }
+    .delivery-option.selected { border-color: var(--pk-violet); background: rgba(139,92,246,0.05); }
+    .delivery-option input { display: none; }
+    .delivery-radio { width: 20px; height: 20px; border: 2px solid var(--pk-border); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .delivery-option.selected .delivery-radio { border-color: var(--pk-violet); }
+    .delivery-option.selected .delivery-radio::after { content: ''; width: 10px; height: 10px; background: var(--pk-violet); border-radius: 50%; }
+    .delivery-info { flex: 1; }
+    .delivery-name { font-weight: 600; font-size: 0.9rem; color: var(--pk-navy); }
+    .delivery-time { font-size: 0.8rem; color: var(--pk-text-muted); }
+    .delivery-price { font-weight: 700; font-size: 0.9rem; color: var(--pk-navy); }
+    .delivery-price.free { color: var(--pk-success); }
+
+    /* Payment Tabs */
+    .payment-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .payment-tab { flex: 1; padding: 12px; border: 2px solid var(--pk-border); border-radius: var(--radius-lg); text-align: center; cursor: pointer; font-weight: 500; font-size: 0.9rem; color: var(--pk-text-secondary); transition: all 0.15s; }
+    .payment-tab:hover { border-color: var(--pk-violet); }
+    .payment-tab.active { border-color: var(--pk-violet); background: rgba(139,92,246,0.05); color: var(--pk-violet); }
+    .payment-tab i { display: block; font-size: 1.2rem; margin-bottom: 4px; }
+
+    /* Card Icons */
+    .card-icons { display: flex; gap: 8px; margin-top: 12px; }
+    .card-icon { width: 40px; height: 26px; border-radius: 4px; background: var(--pk-bg); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: var(--pk-text-muted); border: 1px solid var(--pk-border); }
+
+    /* Error Banner */
+    .error-banner { padding: 12px 16px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: var(--radius-md); color: var(--pk-danger); font-size: 0.88rem; margin-bottom: 16px; display: none; }
+
+    /* Order Summary Sidebar */
+    .checkout-summary { position: sticky; top: 80px; background: var(--pk-navy); border-radius: var(--radius-xl); padding: 28px; color: #fff; }
+    .checkout-summary h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; }
+    .summary-items { margin-bottom: 16px; }
+    .summary-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .summary-item:last-child { border-bottom: none; }
+    .summary-item-img { width: 50px; height: 50px; border-radius: var(--radius-md); background: rgba(255,255,255,0.1); overflow: hidden; flex-shrink: 0; }
+    .summary-item-img img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+    .summary-item-info { flex: 1; }
+    .summary-item-name { font-size: 0.82rem; font-weight: 500; }
+    .summary-item-qty { font-size: 0.75rem; color: rgba(255,255,255,0.6); }
+    .summary-item-price { font-weight: 600; font-size: 0.85rem; }
+    .summary-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.88rem; }
+    .summary-row .label { color: rgba(255,255,255,0.7); }
+    .summary-row .value { font-weight: 600; }
+    .summary-divider { border: none; border-top: 1px solid rgba(255,255,255,0.15); margin: 12px 0; }
+    .summary-total { display: flex; justify-content: space-between; padding: 12px 0; font-size: 1.15rem; font-weight: 800; }
+    .place-order-btn { display: block; width: 100%; padding: 14px; background: var(--pk-violet); color: #fff; border: none; border-radius: var(--radius-lg); font-size: 1rem; font-weight: 700; cursor: pointer; text-align: center; margin-top: 16px; transition: background 0.2s; }
+    .place-order-btn:hover { background: #7c3aed; }
+    .place-order-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .place-order-btn .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .trust-row { display: flex; justify-content: center; gap: 24px; margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.15); }
+    .trust-item { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: rgba(255,255,255,0.7); }
+    .trust-item i { font-size: 1rem; color: var(--pk-lavender); }
+
+    @media (max-width: 900px) {
+      .checkout-layout { grid-template-columns: 1fr; }
+      .checkout-summary { position: static; order: -1; }
+      .delivery-options { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
   <header class="pk-header" id="navbar"></header>
-  <main class="pk-checkout-page">
+
+  <main class="checkout-page">
     <div class="container">
-      <div class="pk-checkout-shell">
-        <div class="pk-checkout-steps" id="checkout-steps">
-          <div class="pk-checkout-step active" data-step="1"><span class="pk-checkout-step-num">1</span><span>Shipping</span></div>
-          <div class="pk-checkout-step-connector"></div>
-          <div class="pk-checkout-step" data-step="2"><span class="pk-checkout-step-num">2</span><span>Payment</span></div>
-          <div class="pk-checkout-step-connector"></div>
-          <div class="pk-checkout-step" data-step="3"><span class="pk-checkout-step-num">3</span><span>Confirm</span></div>
-        </div>
-        <div class="pk-checkout-layout">
-          <div id="checkout-form-container">
-            <div class="pk-checkout-section" id="step-shipping">
-              <h3>📦 Shipping Information</h3>
-              <div class="pk-checkout-form-grid">
-                <div class="pk-input-group full-width"><label class="pk-label">Full Name *</label><input class="pk-input" name="shipping_name" required></div>
-                <div class="pk-input-group full-width"><label class="pk-label">Address *</label><input class="pk-input" name="shipping_address" required></div>
-                <div class="pk-input-group"><label class="pk-label">City *</label><input class="pk-input" name="shipping_city" required></div>
-                <div class="pk-input-group"><label class="pk-label">State</label><input class="pk-input" name="shipping_state"></div>
-                <div class="pk-input-group"><label class="pk-label">Postal Code</label><input class="pk-input" name="shipping_postal"></div>
-                <div class="pk-input-group"><label class="pk-label">Country *</label><select class="pk-select" name="shipping_country" required><option value="">Select</option><option value="AE">UAE</option><option value="SA">Saudi Arabia</option><option value="US">United States</option><option value="GB">UK</option></select></div>
-                <div class="pk-input-group full-width"><label class="pk-label">Phone</label><input class="pk-input" name="shipping_phone"></div>
-                <div class="pk-input-group full-width"><label class="pk-label">Notes</label><textarea class="pk-input pk-textarea" name="order_notes" rows="2"></textarea></div>
-              </div>
-              <div style="display:flex;justify-content:flex-end;margin-top:16px;"><button class="pk-btn pk-btn-primary" onclick="checkoutNextStep(1)">Continue to Payment →</button></div>
+      <div class="checkout-breadcrumb"><a href="/">Home</a> &rsaquo; <a href="/pages/cart.html">Cart</a> &rsaquo; <span>Checkout</span></div>
+
+      <!-- Progress Steps -->
+      <div class="progress-steps">
+        <div class="progress-step completed"><span class="progress-step-num">&#10003;</span><span>Cart</span></div>
+        <div class="progress-connector"></div>
+        <div class="progress-step active"><span class="progress-step-num">2</span><span>Checkout</span></div>
+        <div class="progress-connector"></div>
+        <div class="progress-step"><span class="progress-step-num">3</span><span>Confirmation</span></div>
+      </div>
+
+      <h1 class="checkout-title">Check<span>out</span></h1>
+      <p class="checkout-subtitle">Complete your details to place your order</p>
+
+      <div id="checkout-error" class="error-banner"></div>
+
+      <div class="checkout-layout">
+        <!-- Left: Forms -->
+        <div class="checkout-forms">
+          <!-- Contact Information -->
+          <div class="checkout-section">
+            <div class="checkout-section-header">
+              <div class="checkout-section-icon">&#128100;</div>
+              <div><div class="checkout-section-title">Contact Information</div><div class="checkout-section-desc">We'll use this to keep you updated about your order.</div></div>
             </div>
-            <div class="pk-checkout-section" id="step-payment" style="display:none;">
-              <h3>💳 Payment Method</h3>
-              <div style="padding:16px;background:var(--pk-surface);border-radius:var(--radius-md);border:1.5px solid var(--pk-violet);">
-                <div style="font-weight:600;">Credit / Debit Card</div>
-                <div style="font-size:0.85rem;color:var(--pk-text-muted);">Secure payment via Nomod</div>
-              </div>
-              <div style="display:flex;justify-content:space-between;margin-top:20px;">
-                <button class="pk-btn pk-btn-outline" onclick="checkoutPrevStep(2)">← Back</button>
-                <button class="pk-btn pk-btn-primary" onclick="checkoutNextStep(2)">Review Order →</button>
-              </div>
+            <div class="form-grid">
+              <div class="form-group"><label class="form-label">Email Address</label><input class="form-input" type="email" id="co-email" placeholder="you@example.com" required></div>
+              <div class="form-group"><label class="form-label">Phone Number</label><input class="form-input" type="tel" id="co-phone" placeholder="+971 50 123 4567" required></div>
             </div>
-            <div class="pk-checkout-section" id="step-confirm" style="display:none;">
-              <h3>✅ Review & Place Order</h3>
-              <div id="order-review"></div>
-              <div style="display:flex;justify-content:space-between;margin-top:20px;">
-                <button class="pk-btn pk-btn-outline" onclick="checkoutPrevStep(3)">← Back</button>
-                <button class="pk-btn pk-btn-violet pk-btn-lg" onclick="placeOrder()" id="place-order-btn">🚀 Place Order & Pay</button>
-              </div>
-            </div>
-            <div id="checkout-error" style="display:none;color:var(--pk-danger);margin-top:12px;font-size:0.88rem;"></div>
           </div>
-          <div class="pk-checkout-summary"><div class="pk-checkout-summary-card" id="checkout-summary"></div></div>
+
+          <!-- Shipping Address -->
+          <div class="checkout-section">
+            <div class="checkout-section-header">
+              <div class="checkout-section-icon">&#128205;</div>
+              <div><div class="checkout-section-title">Shipping Address</div><div class="checkout-section-desc">Where would you like us to deliver your order?</div></div>
+            </div>
+            <div class="form-grid">
+              <div class="form-group full"><label class="form-label">Full Name</label><input class="form-input" id="co-name" placeholder="Ahmed Khan" required></div>
+              <div class="form-group"><label class="form-label">Address Line 1</label><input class="form-input" id="co-address1" placeholder="Al Wasl Road, Building 12" required></div>
+              <div class="form-group"><label class="form-label">Address Line 2 (Optional)</label><input class="form-input" id="co-address2" placeholder="Apartment, Suite, etc."></div>
+              <div class="form-group"><label class="form-label">City</label><input class="form-input" id="co-city" placeholder="Dubai" required></div>
+              <div class="form-group"><label class="form-label">Emirate</label>
+                <select class="form-select" id="co-emirate" required>
+                  <option value="">Select Emirate</option>
+                  <option value="Dubai">Dubai</option>
+                  <option value="Abu Dhabi">Abu Dhabi</option>
+                  <option value="Sharjah">Sharjah</option>
+                  <option value="Ajman">Ajman</option>
+                  <option value="Ras Al Khaimah">Ras Al Khaimah</option>
+                  <option value="Fujairah">Fujairah</option>
+                  <option value="Umm Al Quwain">Umm Al Quwain</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="form-label">Postal / PO Box (Optional)</label><input class="form-input" id="co-postal" placeholder="PO Box 12345"></div>
+            </div>
+          </div>
+
+          <!-- Delivery Method -->
+          <div class="checkout-section">
+            <div class="checkout-section-header">
+              <div class="checkout-section-icon">&#128666;</div>
+              <div><div class="checkout-section-title">Delivery Method</div><div class="checkout-section-desc">Choose how you would like to receive your order.</div></div>
+            </div>
+            <div class="delivery-options">
+              <div class="delivery-option selected" onclick="selectDelivery(this, 'standard', 0)">
+                <input type="radio" name="delivery" value="standard" checked>
+                <div class="delivery-radio"></div>
+                <div class="delivery-info"><div class="delivery-name">Standard (2-4 days)</div><div class="delivery-time">Reliable delivery across UAE</div></div>
+                <div class="delivery-price free">Free</div>
+              </div>
+              <div class="delivery-option" onclick="selectDelivery(this, 'express', 35)">
+                <input type="radio" name="delivery" value="express">
+                <div class="delivery-radio"></div>
+                <div class="delivery-info"><div class="delivery-name">Express (1 day)</div><div class="delivery-time">Get it tomorrow</div></div>
+                <div class="delivery-price">AED 35.00</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Method -->
+          <div class="checkout-section">
+            <div class="checkout-section-header">
+              <div class="checkout-section-icon">&#128179;</div>
+              <div><div class="checkout-section-title">Payment Method</div><div class="checkout-section-desc">Choose your preferred payment method.</div></div>
+            </div>
+            <div class="payment-tabs">
+              <div class="payment-tab active" onclick="selectPayment('card')"><i class="fas fa-credit-card"></i>Card</div>
+              <div class="payment-tab" onclick="selectPayment('apple')"><i class="fab fa-apple"></i>Apple Pay</div>
+              <div class="payment-tab" onclick="selectPayment('cod')"><i class="fas fa-money-bill"></i>Cash on Delivery</div>
+            </div>
+            <div id="payment-card-form">
+              <div class="form-grid">
+                <div class="form-group full"><label class="form-label">Card Number</label><input class="form-input" id="co-card" placeholder="4242 4242 4242 4242" maxlength="19"></div>
+                <div class="form-group"><label class="form-label">Expiry Date</label><input class="form-input" id="co-expiry" placeholder="12/26" maxlength="5"></div>
+                <div class="form-group"><label class="form-label">CVC</label><input class="form-input" id="co-cvc" placeholder="123" maxlength="4"></div>
+                <div class="form-group full"><label class="form-label">Name on Card</label><input class="form-input" id="co-cardname" placeholder="Ahmed Khan"></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:0.8rem;color:var(--pk-text-muted);">
+                <i class="fas fa-lock" style="color:var(--pk-success);"></i>
+                Secure payments powered by Nomod. Your payment information is encrypted and secure.
+              </div>
+              <div class="card-icons">
+                <div class="card-icon">VISA</div>
+                <div class="card-icon">MC</div>
+                <div class="card-icon">AMEX</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Order Summary -->
+        <div class="checkout-summary" id="checkout-summary">
+          <h3>Order Summary</h3>
+          <div class="summary-items" id="summary-items"></div>
+          <hr class="summary-divider">
+          <div class="summary-row"><span class="label">Subtotal</span><span class="value" id="summary-subtotal">AED 0.00</span></div>
+          <div class="summary-row"><span class="label">Delivery Fee</span><span class="value" id="summary-shipping">Free</span></div>
+          <div class="summary-row"><span class="label">Discount</span><span class="value" id="summary-discount">- AED 0.00</span></div>
+          <hr class="summary-divider">
+          <div class="summary-total"><span>Total</span><span id="summary-total">AED 0.00</span></div>
+          <button class="place-order-btn" id="place-order-btn" onclick="placeOrder()">Place Order &rarr;</button>
+          <div class="trust-row">
+            <div class="trust-item"><i class="fas fa-shield-alt"></i><div>12-Month<br>Warranty</div></div>
+            <div class="trust-item"><i class="fas fa-lock"></i><div>Secure<br>Payments</div></div>
+          </div>
         </div>
       </div>
     </div>
   </main>
+
   <footer id="footer"></footer>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/env.js"></script><script src="/js/config.js"></script><script src="/js/supabase.js"></script><script src="/js/settings.js"></script><script src="/js/components.js"></script><script src="/js/checkout.js"></script>
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/supabase.js"></script>
+  <script src="/js/settings.js"></script>
+  <script src="/js/components.js"></script>
+  <script>
+  (function() {
+    'use strict';
+    var db = window.db;
+    var cartItems = [];
+    var deliveryFee = 0;
+    var discount = 0;
+    var paymentMethod = 'card';
+
+    document.addEventListener('DOMContentLoaded', async function() {
+      if (!db) await new Promise(function(r) { setTimeout(r, 300); });
+      cartItems = await getCart();
+      renderSummary();
+      prefillFromProfile();
+    });
+
+    function renderSummary() {
+      var container = document.getElementById('summary-items');
+      var subtotal = 0;
+      var html = '';
+
+      for (var i = 0; i < cartItems.length; i++) {
+        var item = cartItems[i];
+        var product = item.products;
+        var variant = item.product_variants;
+        if (!product) continue;
+
+        var price = variant ? variant.price : product.price;
+        var total = price * item.quantity;
+        subtotal += total;
+
+        html += '<div class="summary-item">' +
+          '<div class="summary-item-img"><img src="/assets/placeholder-laptop.png" alt=""></div>' +
+          '<div class="summary-item-info"><div class="summary-item-name">' + esc(product.name) + '</div><div class="summary-item-qty">Qty: ' + item.quantity + '</div></div>' +
+          '<div class="summary-item-price">' + formatPrice(total) + '</div></div>';
+      }
+
+      container.innerHTML = html;
+      document.getElementById('summary-subtotal').textContent = formatPrice(subtotal);
+      document.getElementById('summary-shipping').textContent = deliveryFee === 0 ? 'Free' : formatPrice(deliveryFee);
+      document.getElementById('summary-discount').textContent = '-' + formatPrice(discount);
+      document.getElementById('summary-total').textContent = formatPrice(subtotal + deliveryFee - discount);
+    }
+
+    async function prefillFromProfile() {
+      var session = await getSession();
+      if (!session) return;
+      var profile = await getUserProfile(session.user.id);
+      if (profile) {
+        document.getElementById('co-email').value = profile.email || '';
+        document.getElementById('co-name').value = profile.full_name || '';
+        document.getElementById('co-phone').value = profile.phone_number || '';
+      }
+    }
+
+    window.selectDelivery = function(el, type, fee) {
+      document.querySelectorAll('.delivery-option').forEach(function(o) { o.classList.remove('selected'); });
+      el.classList.add('selected');
+      el.querySelector('input').checked = true;
+      deliveryFee = fee;
+      renderSummary();
+    };
+
+    window.selectPayment = function(method) {
+      paymentMethod = method;
+      document.querySelectorAll('.payment-tab').forEach(function(t) { t.classList.remove('active'); });
+      event.currentTarget.classList.add('active');
+      document.getElementById('payment-card-form').style.display = method === 'card' ? '' : 'none';
+    };
+
+    window.placeOrder = async function() {
+      var btn = document.getElementById('place-order-btn');
+      var errorBanner = document.getElementById('checkout-error');
+
+      // Validate
+      var email = document.getElementById('co-email').value;
+      var name = document.getElementById('co-name').value;
+      var address = document.getElementById('co-address1').value;
+      var city = document.getElementById('co-city').value;
+      var emirate = document.getElementById('co-emirate').value;
+
+      if (!email || !name || !address || !city || !emirate) {
+        errorBanner.textContent = 'Please fill in all required fields.';
+        errorBanner.style.display = '';
+        return;
+      }
+
+      // Show loading
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Processing Order...';
+      errorBanner.style.display = 'none';
+
+      // Timeout fallback (10 seconds)
+      var timeout = setTimeout(function() {
+        btn.disabled = false;
+        btn.innerHTML = 'Place Order &rarr;';
+        errorBanner.textContent = 'Request timed out. Please try again.';
+        errorBanner.style.display = '';
+      }, 10000);
+
+      try {
+        var session = await getSession();
+        if (!session) {
+          window.location.href = '/pages/login.html?redirect=' + encodeURIComponent('/pages/checkout.html');
+          return;
+        }
+
+        // Calculate totals
+        var subtotal = 0;
+        cartItems.forEach(function(item) {
+          var price = item.product_variants ? item.product_variants.price : item.products.price;
+          subtotal += price * item.quantity;
+        });
+        var total = subtotal + deliveryFee - discount;
+
+        // Create order via API
+        var result = await fetch('/api/create-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: cartItems.map(function(item) {
+              return {
+                product_id: item.product_id,
+                variant_id: item.variant_id,
+                quantity: item.quantity,
+                price: item.product_variants ? item.product_variants.price : item.products.price
+              };
+            }),
+            shipping_name: name,
+            shipping_address: address + (document.getElementById('co-address2').value ? ', ' + document.getElementById('co-address2').value : ''),
+            shipping_city: city,
+            shipping_state: emirate,
+            shipping_country: 'AE',
+            shipping_postal: document.getElementById('co-postal').value || '',
+            shipping_phone: document.getElementById('co-phone').value || '',
+            notes: '',
+            total: total,
+            subtotal: subtotal,
+            tax: 0,
+            shipping: deliveryFee,
+            discount: discount
+          })
+        });
+
+        var data = await result.json();
+
+        clearTimeout(timeout);
+
+        if (data.checkout_url) {
+          // Redirect to Nomod hosted checkout
+          window.location.href = data.checkout_url;
+        } else if (data.order_id) {
+          // COD or success
+          await clearCart();
+          window.location.href = '/pages/checkout/success.html?order=' + data.order_number;
+        } else {
+          throw new Error(data.error || 'Failed to create order');
+        }
+      } catch (e) {
+        clearTimeout(timeout);
+        btn.disabled = false;
+        btn.innerHTML = 'Place Order &rarr;';
+        errorBanner.textContent = e.message || 'An error occurred. Please try again.';
+        errorBanner.style.display = '';
+      }
+    };
+
+    function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+  })();
+  </script>
 </body>
 </html>

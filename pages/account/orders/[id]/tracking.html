@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Tracking — Pickora</title>
+  <link rel="icon" type="image/png" href="/assets/icons/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .tracking-page { padding: 100px 0 48px; min-height: 70vh; }
+    .tracking-back { display: inline-flex; align-items: center; gap: 6px; font-size: 0.88rem; color: var(--pk-text-secondary); text-decoration: none; margin-bottom: 16px; }
+    .tracking-back:hover { color: var(--pk-violet); }
+    .tracking-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+    .tracking-title { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 800; color: var(--pk-navy); }
+    .tracking-title span { color: var(--pk-violet); }
+    .tracking-date { font-size: 0.88rem; color: var(--pk-text-muted); margin-top: 4px; }
+    .tracking-status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 0.88rem; }
+    .tracking-status-badge.shipped { background: rgba(59,130,246,0.15); color: #3B82F6; }
+    .tracking-status-badge.processing { background: rgba(245,158,11,0.15); color: #F59E0B; }
+    .tracking-status-badge.delivered { background: rgba(16,185,129,0.15); color: #10B981; }
+    .tracking-status-badge.cancelled { background: rgba(239,68,68,0.15); color: #EF4444; }
+
+    /* Two-column layout */
+    .tracking-layout { display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; }
+
+    /* Progress Tracker */
+    .progress-card { background: var(--pk-surface); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow-sm); margin-bottom: 24px; }
+    .progress-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .progress-card-title { font-size: 1.05rem; font-weight: 700; color: var(--pk-navy); }
+    .tracking-number { font-size: 0.82rem; color: var(--pk-text-muted); display: flex; align-items: center; gap: 6px; }
+    .tracking-number button { padding: 4px 8px; background: var(--pk-bg); border: 1px solid var(--pk-border); border-radius: var(--radius-sm); font-size: 0.75rem; cursor: pointer; color: var(--pk-text-secondary); }
+    .tracking-number button:hover { border-color: var(--pk-violet); color: var(--pk-violet); }
+
+    /* Horizontal Tracker */
+    .tracker-steps { display: flex; align-items: center; justify-content: space-between; position: relative; margin-bottom: 24px; }
+    .tracker-line { position: absolute; top: 24px; left: 40px; right: 40px; height: 3px; background: var(--pk-border); z-index: 0; }
+    .tracker-line-fill { height: 100%; background: var(--pk-violet); transition: width 0.8s ease; border-radius: 2px; }
+    .tracker-step { display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; z-index: 1; }
+    .tracker-step-icon { width: 48px; height: 48px; border-radius: 50%; background: var(--pk-bg); border: 3px solid var(--pk-border); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--pk-text-muted); transition: all 0.3s; }
+    .tracker-step.completed .tracker-step-icon { background: var(--pk-violet); border-color: var(--pk-violet); color: #fff; }
+    .tracker-step.current .tracker-step-icon { background: var(--pk-surface); border-color: var(--pk-violet); color: var(--pk-violet); box-shadow: 0 0 0 4px rgba(139,92,246,0.2); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 4px rgba(139,92,246,0.2); } 50% { box-shadow: 0 0 0 8px rgba(139,92,246,0.1); } }
+    .tracker-step-label { font-size: 0.78rem; font-weight: 600; color: var(--pk-text-muted); text-align: center; }
+    .tracker-step.completed .tracker-step-label, .tracker-step.current .tracker-step-label { color: var(--pk-navy); }
+    .tracker-step-time { font-size: 0.7rem; color: var(--pk-text-muted); text-align: center; }
+
+    /* Estimated Delivery */
+    .estimate-bar { display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--pk-bg); border-radius: var(--radius-lg); margin-bottom: 24px; }
+    .estimate-icon { font-size: 1.5rem; }
+    .estimate-text { font-weight: 600; font-size: 0.95rem; color: var(--pk-navy); }
+    .estimate-sub { font-size: 0.82rem; color: var(--pk-text-muted); }
+
+    /* Timeline */
+    .timeline-card { background: var(--pk-surface); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow-sm); }
+    .timeline-title { font-size: 1.05rem; font-weight: 700; color: var(--pk-navy); margin-bottom: 20px; }
+    .timeline-item { display: flex; gap: 16px; padding: 12px 0; position: relative; }
+    .timeline-item:not(:last-child)::after { content: ''; position: absolute; left: 15px; top: 40px; bottom: 0; width: 2px; background: var(--pk-border); }
+    .timeline-dot { width: 32px; height: 32px; border-radius: 50%; background: var(--pk-bg); border: 2px solid var(--pk-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.8rem; z-index: 1; }
+    .timeline-item:first-child .timeline-dot { background: var(--pk-violet); border-color: var(--pk-violet); color: #fff; }
+    .timeline-content { flex: 1; }
+    .timeline-heading { font-weight: 600; font-size: 0.9rem; color: var(--pk-navy); margin-bottom: 2px; }
+    .timeline-desc { font-size: 0.82rem; color: var(--pk-text-muted); }
+    .timeline-time { font-size: 0.78rem; color: var(--pk-text-muted); margin-top: 4px; }
+
+    /* Order Summary Sidebar */
+    .tracking-summary { position: sticky; top: 80px; background: var(--pk-navy); border-radius: var(--radius-xl); padding: 28px; color: #fff; }
+    .tracking-summary h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 16px; }
+    .summary-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .summary-item:last-child { border-bottom: none; }
+    .summary-item-img { width: 50px; height: 50px; border-radius: var(--radius-md); background: rgba(255,255,255,0.1); overflow: hidden; flex-shrink: 0; }
+    .summary-item-img img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+    .summary-item-info { flex: 1; }
+    .summary-item-name { font-size: 0.82rem; font-weight: 500; }
+    .summary-item-qty { font-size: 0.75rem; color: rgba(255,255,255,0.6); }
+    .summary-item-price { font-weight: 600; font-size: 0.85rem; }
+    .summary-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.88rem; }
+    .summary-row .label { color: rgba(255,255,255,0.7); }
+    .summary-total { display: flex; justify-content: space-between; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.15); font-weight: 800; font-size: 1.05rem; }
+    .summary-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.15); }
+    .summary-section h4 { font-size: 0.82rem; font-weight: 600; margin-bottom: 8px; color: rgba(255,255,255,0.7); }
+    .summary-section p { font-size: 0.82rem; line-height: 1.5; }
+    .help-btn { display: block; width: 100%; padding: 12px; background: transparent; border: 2px solid rgba(255,255,255,0.3); border-radius: var(--radius-lg); color: #fff; font-weight: 600; text-align: center; text-decoration: none; margin-top: 16px; transition: all 0.15s; }
+    .help-btn:hover { border-color: var(--pk-violet); background: rgba(139,92,246,0.2); }
+
+    /* Cancelled Banner */
+    .cancelled-banner { padding: 16px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: var(--radius-lg); margin-bottom: 24px; color: var(--pk-danger); font-weight: 600; text-align: center; }
+
+    /* Help Cards */
+    .help-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+    .help-card { background: var(--pk-surface); border-radius: var(--radius-xl); padding: 20px; box-shadow: var(--shadow-sm); text-align: center; }
+    .help-card-icon { font-size: 2rem; margin-bottom: 8px; }
+    .help-card h4 { font-size: 0.95rem; font-weight: 600; color: var(--pk-navy); margin-bottom: 4px; }
+    .help-card p { font-size: 0.82rem; color: var(--pk-text-muted); margin-bottom: 12px; }
+    .help-card a { display: inline-block; padding: 8px 20px; border: 1.5px solid var(--pk-violet); border-radius: 999px; color: var(--pk-violet); font-weight: 600; font-size: 0.82rem; text-decoration: none; }
+    .help-card a:hover { background: var(--pk-violet); color: #fff; }
+
+    @media (max-width: 900px) {
+      .tracking-layout { grid-template-columns: 1fr; }
+      .tracking-summary { position: static; }
+      .tracker-steps { flex-wrap: wrap; gap: 16px; justify-content: center; }
+      .tracker-line { display: none; }
+      .help-cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="pk-header" id="navbar"></header>
+
+  <main class="tracking-page">
+    <div class="container">
+      <a href="/pages/account.html" class="tracking-back">&larr; Back to My Account</a>
+
+      <div class="tracking-header">
+        <div>
+          <h1 class="tracking-title">Order <span id="order-num">#PK-00000</span></h1>
+          <div class="tracking-date" id="order-date">Placed on ...</div>
+        </div>
+        <div class="tracking-status-badge" id="status-badge">Loading...</div>
+      </div>
+
+      <div id="cancelled-banner" class="cancelled-banner" style="display:none;"></div>
+
+      <div class="tracking-layout">
+        <!-- Left: Tracker + Timeline -->
+        <div>
+          <!-- Progress Tracker -->
+          <div class="progress-card">
+            <div class="progress-card-header">
+              <div class="progress-card-title">Order Tracking</div>
+              <div class="tracking-number">Tracking: <span id="tracking-ref">—</span> <button onclick="copyTracking()">Copy</button></div>
+            </div>
+            <div class="tracker-steps" id="tracker-steps">
+              <div class="tracker-line"><div class="tracker-line-fill" id="tracker-fill" style="width:0%"></div></div>
+              <div class="tracker-step completed" data-step="1"><div class="tracker-step-icon">&#128722;</div><div class="tracker-step-label">Order Placed</div><div class="tracker-step-time" id="time-placed">—</div></div>
+              <div class="tracker-step" data-step="2"><div class="tracker-step-icon">&#128230;</div><div class="tracker-step-label">Processing</div><div class="tracker-step-time" id="time-processing">—</div></div>
+              <div class="tracker-step" data-step="3"><div class="tracker-step-icon">&#128666;</div><div class="tracker-step-label">Shipped</div><div class="tracker-step-time" id="time-shipped">—</div></div>
+              <div class="tracker-step" data-step="4"><div class="tracker-step-icon">&#10003;</div><div class="tracker-step-label">Delivered</div><div class="tracker-step-time" id="time-delivered">—</div></div>
+            </div>
+          </div>
+
+          <!-- Estimated Delivery -->
+          <div class="estimate-bar" id="estimate-bar">
+            <div class="estimate-icon">&#128666;</div>
+            <div><div class="estimate-text" id="estimate-text">Estimated Delivery: —</div><div class="estimate-sub">Your order is being prepared.</div></div>
+          </div>
+
+          <!-- Timeline -->
+          <div class="timeline-card">
+            <div class="timeline-title">Tracking Details</div>
+            <div id="timeline-list"><p style="text-align:center;padding:20px;color:var(--pk-text-muted);">Loading...</p></div>
+          </div>
+
+          <!-- Help Cards -->
+          <div class="help-cards">
+            <div class="help-card"><div class="help-card-icon">&#128222;</div><h4>Need Help?</h4><p>If you have any questions about your order, our team is here to help.</p><a href="/pages/contact.html">Contact Us &rarr;</a></div>
+            <div class="help-card"><div class="help-card-icon">&#128260;</div><h4>Hassle-Free Returns</h4><p>Not completely satisfied? We offer easy returns within 7 days of delivery.</p><a href="/pages/returns.html">View Return Policy &rarr;</a></div>
+          </div>
+        </div>
+
+        <!-- Right: Order Summary -->
+        <div class="tracking-summary">
+          <h3>Order Summary</h3>
+          <div id="summary-items"></div>
+          <hr style="border:none;border-top:1px solid rgba(255,255,255,0.15);margin:12px 0;">
+          <div class="summary-row"><span class="label">Subtotal</span><span id="sum-subtotal">AED 0.00</span></div>
+          <div class="summary-row"><span class="label">Delivery Fee</span><span id="sum-shipping">Free</span></div>
+          <div class="summary-total"><span>Total</span><span id="sum-total">AED 0.00</span></div>
+
+          <div class="summary-section">
+            <h4>&#128205; Shipping Address</h4>
+            <p id="shipping-address">—</p>
+          </div>
+          <div class="summary-section">
+            <h4>&#128179; Payment Method</h4>
+            <p id="payment-method">Card ending in ••••</p>
+          </div>
+          <a href="/pages/contact.html" class="help-btn">Need Help? Contact Us &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer id="footer"></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/supabase.js"></script>
+  <script src="/js/settings.js"></script>
+  <script src="/js/components.js"></script>
+  <script>
+  (function() {
+    'use strict';
+    var db = window.db;
+    var orderData = null;
+
+    document.addEventListener('DOMContentLoaded', async function() {
+      if (!db) await new Promise(function(r) { setTimeout(r, 300); });
+
+      // Get order ID from URL
+      var pathParts = window.location.pathname.split('/');
+      var orderId = pathParts[pathParts.length - 3]; // /pages/account/orders/[id]/tracking.html
+
+      if (!orderId) {
+        document.getElementById('timeline-list').innerHTML = '<p style="text-align:center;padding:20px;color:var(--pk-text-muted);">Order not found.</p>';
+        return;
+      }
+
+      // Load order
+      var result = await db.from('orders').select('*, order_items(*, products(name, brand), product_variants(name))').eq('id', orderId).single();
+
+      if (result.error || !result.data) {
+        document.getElementById('timeline-list').innerHTML = '<p style="text-align:center;padding:20px;color:var(--pk-text-muted);">Order not found.</p>';
+        return;
+      }
+
+      orderData = result.data;
+      renderOrder();
+    });
+
+    function renderOrder() {
+      var o = orderData;
+      document.getElementById('order-num').textContent = '#' + o.order_number;
+      document.getElementById('order-date').textContent = 'Placed on ' + new Date(o.created_at).toLocaleDateString('en-AE', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+      // Status badge
+      var badge = document.getElementById('status-badge');
+      var status = o.status || 'pending';
+      badge.className = 'tracking-status-badge ' + status;
+      badge.innerHTML = status.charAt(0).toUpperCase() + status.slice(1) + (status === 'shipped' ? '<br><span style="font-size:0.75rem;font-weight:400;">Your order is on the way</span>' : '');
+
+      // Progress tracker
+      updateTracker(status, o.created_at);
+
+      // Timeline
+      renderTimeline(status, o.created_at);
+
+      // Estimate
+      if (status === 'cancelled') {
+        document.getElementById('cancelled-banner').textContent = 'This order has been cancelled.';
+        document.getElementById('cancelled-banner').style.display = '';
+        document.getElementById('estimate-bar').style.display = 'none';
+      } else {
+        var estDate = new Date(o.created_at);
+        estDate.setDate(estDate.getDate() + 3);
+        document.getElementById('estimate-text').textContent = 'Estimated Delivery: ' + estDate.toLocaleDateString('en-AE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      }
+
+      // Tracking ref
+      document.getElementById('tracking-ref').textContent = o.nomad_order_id || 'DXB' + Math.random().toString().slice(2, 14);
+
+      // Summary
+      var itemsHtml = '';
+      var subtotal = 0;
+      (o.order_items || []).forEach(function(item) {
+        var total = item.total || item.price * item.quantity;
+        subtotal += total;
+        itemsHtml += '<div class="summary-item"><div class="summary-item-img"><img src="/assets/placeholder-laptop.png" alt=""></div><div class="summary-item-info"><div class="summary-item-name">' + esc(item.name || '') + '</div><div class="summary-item-qty">Qty: ' + item.quantity + '</div></div><div class="summary-item-price">' + formatPrice(total) + '</div></div>';
+      });
+      document.getElementById('summary-items').innerHTML = itemsHtml;
+      document.getElementById('sum-subtotal').textContent = formatPrice(subtotal);
+      document.getElementById('sum-shipping').textContent = o.shipping > 0 ? formatPrice(o.shipping) : 'Free';
+      document.getElementById('sum-total').textContent = formatPrice(o.total || 0);
+      document.getElementById('shipping-address').innerHTML = esc(o.shipping_name || '') + '<br>' + esc(o.shipping_address || '') + '<br>' + esc(o.shipping_city || '') + ', ' + esc(o.shipping_state || '') + ', UAE';
+    }
+
+    function updateTracker(status, createdAt) {
+      var steps = document.querySelectorAll('.tracker-step');
+      var fill = document.getElementById('tracker-fill');
+      var statusOrder = ['pending', 'processing', 'shipped', 'delivered'];
+      var currentIdx = statusOrder.indexOf(status);
+      if (currentIdx < 0) currentIdx = 0;
+
+      steps.forEach(function(step, i) {
+        step.classList.remove('completed', 'current');
+        if (i < currentIdx) step.classList.add('completed');
+        else if (i === currentIdx) step.classList.add('current');
+      });
+
+      var fillPercent = (currentIdx / 3) * 100;
+      setTimeout(function() { fill.style.width = fillPercent + '%'; }, 100);
+
+      // Times
+      var base = new Date(createdAt);
+      document.getElementById('time-placed').textContent = base.toLocaleDateString('en-AE', { month: 'short', day: 'numeric' }) + ', ' + base.toLocaleTimeString('en-AE', { hour: '2-digit', minute: '2-digit' });
+      if (currentIdx >= 1) { var d = new Date(base); d.setHours(d.getHours() + 2); document.getElementById('time-processing').textContent = d.toLocaleDateString('en-AE', { month: 'short', day: 'numeric' }) + ', ' + d.toLocaleTimeString('en-AE', { hour: '2-digit', minute: '2-digit' }); }
+      if (currentIdx >= 2) { var d = new Date(base); d.setDate(d.getDate() + 1); document.getElementById('time-shipped').textContent = d.toLocaleDateString('en-AE', { month: 'short', day: 'numeric' }) + ', ' + d.toLocaleTimeString('en-AE', { hour: '2-digit', minute: '2-digit' }); }
+      if (currentIdx >= 3) { var d = new Date(base); d.setDate(d.getDate() + 3); document.getElementById('time-delivered').textContent = 'Est. ' + d.toLocaleDateString('en-AE', { month: 'short', day: 'numeric', year: 'numeric' }); }
+    }
+
+    function renderTimeline(status, createdAt) {
+      var events = [];
+      var base = new Date(createdAt);
+
+      events.push({ time: base, title: 'Order confirmed and payment received', desc: 'Thank you for your order! We have received your payment.', icon: '&#10003;' });
+
+      if (status === 'processing' || status === 'shipped' || status === 'delivered') {
+        var d = new Date(base); d.setHours(d.getHours() + 2);
+        events.push({ time: d, title: 'Order is being prepared', desc: 'Your order is being packed and prepared for shipping.', icon: '&#128230;' });
+      }
+      if (status === 'shipped' || status === 'delivered') {
+        var d = new Date(base); d.setDate(d.getDate() + 1);
+        events.push({ time: d, title: 'Order shipped from Dubai warehouse', desc: 'Your package has left our warehouse and is on its way.', icon: '&#128666;' });
+      }
+      if (status === 'delivered') {
+        var d = new Date(base); d.setDate(d.getDate() + 3);
+        events.push({ time: d, title: 'Out for delivery', desc: 'Your package will be out for delivery soon.', icon: '&#128205;' });
+      }
+      if (status === 'cancelled') {
+        events.push({ time: base, title: 'Order cancelled', desc: 'This order has been cancelled.', icon: '&#10005;' });
+      }
+
+      events.reverse();
+      var html = '';
+      events.forEach(function(e) {
+        var timeStr = e.time.toLocaleDateString('en-AE', { month: 'short', day: 'numeric', year: 'numeric' }) + '<br>' + e.time.toLocaleTimeString('en-AE', { hour: '2-digit', minute: '2-digit' });
+        html += '<div class="timeline-item"><div class="timeline-dot">' + e.icon + '</div><div class="timeline-content"><div class="timeline-heading">' + e.title + '</div><div class="timeline-desc">' + e.desc + '</div><div class="timeline-time">' + timeStr + '</div></div></div>';
+      });
+      document.getElementById('timeline-list').innerHTML = html;
+    }
+
+    window.copyTracking = function() {
+      var ref = document.getElementById('tracking-ref').textContent;
+      navigator.clipboard.writeText(ref).then(function() { alert('Tracking number copied!'); });
+    };
+
+    function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+  })();
+  </script>
+</body>
+</html>

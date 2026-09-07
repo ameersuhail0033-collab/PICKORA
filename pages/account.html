@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Account — Pickora</title>
+  <link rel="icon" type="image/png" href="/assets/icons/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .account-page { padding: 100px 0 48px; min-height: 70vh; }
+    .account-breadcrumb { font-size: 0.85rem; color: var(--pk-text-muted); margin-bottom: 8px; }
+    .account-breadcrumb a { color: var(--pk-text-secondary); text-decoration: none; }
+    .account-title { font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 800; color: var(--pk-navy); margin-bottom: 4px; }
+    .account-title span { color: var(--pk-violet); }
+    .account-subtitle { font-size: 0.95rem; color: var(--pk-text-secondary); margin-bottom: 32px; }
+
+    /* Two-column layout */
+    .account-layout { display: grid; grid-template-columns: 260px 1fr; gap: 24px; align-items: start; }
+
+    /* Sidebar */
+    .account-sidebar { position: sticky; top: 80px; background: var(--pk-navy); border-radius: var(--radius-xl); padding: 24px; color: #fff; }
+    .account-avatar { width: 60px; height: 60px; border-radius: 50%; background: var(--pk-violet); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; }
+    .account-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 2px; }
+    .account-email { font-size: 0.82rem; color: rgba(255,255,255,0.6); margin-bottom: 20px; }
+    .account-nav { display: flex; flex-direction: column; gap: 4px; }
+    .account-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--radius-md); color: rgba(255,255,255,0.7); font-size: 0.88rem; font-weight: 500; cursor: pointer; transition: all 0.15s; border: none; background: none; width: 100%; text-align: left; }
+    .account-nav-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .account-nav-item.active { background: var(--pk-violet); color: #fff; }
+    .account-nav-divider { border: none; border-top: 1px solid rgba(255,255,255,0.15); margin: 12px 0; }
+    .account-nav-item.danger { color: #f87171; }
+    .account-nav-item.danger:hover { background: rgba(248,113,113,0.1); }
+
+    /* Tab Content */
+    .account-content { min-height: 400px; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Quick Stats */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--pk-surface); border-radius: var(--radius-xl); padding: 20px; box-shadow: var(--shadow-sm); }
+    .stat-icon { width: 40px; height: 40px; border-radius: var(--radius-lg); background: var(--pk-bg); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-bottom: 12px; }
+    .stat-label { font-size: 0.82rem; color: var(--pk-text-muted); margin-bottom: 4px; }
+    .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--pk-navy); }
+    .stat-link { font-size: 0.82rem; color: var(--pk-violet); text-decoration: none; font-weight: 500; }
+    .stat-link:hover { text-decoration: underline; }
+
+    /* Orders Table */
+    .orders-card { background: var(--pk-surface); border-radius: var(--radius-xl); padding: 20px; box-shadow: var(--shadow-sm); margin-bottom: 20px; }
+    .orders-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .orders-header h3 { font-size: 1rem; font-weight: 700; color: var(--pk-navy); }
+    .orders-header a { font-size: 0.82rem; color: var(--pk-violet); text-decoration: none; }
+    .order-row { display: grid; grid-template-columns: 140px 1fr 120px 120px auto; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--pk-border); }
+    .order-row:last-child { border-bottom: none; }
+    .order-num { font-weight: 600; font-size: 0.9rem; color: var(--pk-navy); }
+    .order-date { font-size: 0.78rem; color: var(--pk-text-muted); }
+    .order-thumbs { display: flex; }
+    .order-thumb { width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--pk-bg); border: 2px solid var(--pk-surface); margin-left: -8px; overflow: hidden; }
+    .order-thumb:first-child { margin-left: 0; }
+    .order-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 2px; }
+    .status-badge { padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+    .status-badge.processing { background: rgba(245,158,11,0.15); color: #F59E0B; }
+    .status-badge.shipped { background: rgba(59,130,246,0.15); color: #3B82F6; }
+    .status-badge.delivered { background: rgba(16,185,129,0.15); color: #10B981; }
+    .status-badge.cancelled { background: rgba(107,114,128,0.15); color: #6B7280; }
+    .order-total { font-weight: 700; font-size: 0.9rem; color: var(--pk-navy); }
+    .btn-sm { padding: 6px 14px; border-radius: var(--radius-md); font-size: 0.78rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
+    .btn-sm-outline { border: 1.5px solid var(--pk-border); background: transparent; color: var(--pk-navy); }
+    .btn-sm-outline:hover { border-color: var(--pk-violet); color: var(--pk-violet); }
+    .btn-sm-violet { background: var(--pk-violet); color: #fff; border: none; }
+    .btn-sm-violet:hover { background: #7c3aed; }
+
+    /* Wishlist Grid */
+    .wishlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+    .wishlist-card { background: var(--pk-surface); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-sm); position: relative; }
+    .wishlist-card-img { height: 160px; background: var(--pk-bg); display: flex; align-items: center; justify-content: center; }
+    .wishlist-card-img img { max-height: 140px; object-fit: contain; padding: 12px; }
+    .wishlist-card-body { padding: 16px; }
+    .wishlist-card-brand { font-size: 0.7rem; font-weight: 700; color: var(--pk-violet); text-transform: uppercase; letter-spacing: 0.08em; }
+    .wishlist-card-name { font-weight: 600; font-size: 0.9rem; color: var(--pk-navy); margin: 4px 0 8px; }
+    .wishlist-card-price { font-weight: 700; color: var(--pk-navy); }
+    .wishlist-remove { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border-radius: 50%; background: var(--pk-surface); border: none; color: var(--pk-text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); }
+    .wishlist-remove:hover { color: var(--pk-danger); }
+
+    /* Address Cards */
+    .address-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .address-card { background: var(--pk-surface); border-radius: var(--radius-xl); padding: 20px; box-shadow: var(--shadow-sm); position: relative; }
+    .address-card.default { border: 2px solid var(--pk-violet); }
+    .address-label { font-weight: 600; font-size: 0.9rem; color: var(--pk-navy); display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .address-default { padding: 2px 8px; background: var(--pk-violet); color: #fff; border-radius: 999px; font-size: 0.68rem; font-weight: 600; }
+    .address-text { font-size: 0.85rem; color: var(--pk-text-secondary); line-height: 1.5; }
+    .address-actions { position: absolute; top: 16px; right: 16px; display: flex; gap: 6px; }
+    .address-actions button { width: 28px; height: 28px; border-radius: var(--radius-sm); border: 1px solid var(--pk-border); background: transparent; color: var(--pk-text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+    .address-actions button:hover { color: var(--pk-violet); border-color: var(--pk-violet); }
+    .btn-add-outline { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border: 2px dashed var(--pk-border-strong); border-radius: var(--radius-lg); color: var(--pk-text-secondary); font-weight: 500; font-size: 0.88rem; cursor: pointer; background: transparent; transition: all 0.15s; }
+    .btn-add-outline:hover { border-color: var(--pk-violet); color: var(--pk-violet); }
+
+    /* Payment Cards */
+    .payment-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .payment-card { background: var(--pk-surface); border-radius: var(--radius-xl); padding: 20px; box-shadow: var(--shadow-sm); position: relative; }
+    .payment-card.default { border: 2px solid var(--pk-violet); }
+    .payment-brand { font-weight: 700; font-size: 1.1rem; color: var(--pk-navy); margin-bottom: 8px; }
+    .payment-number { font-family: monospace; font-size: 0.9rem; color: var(--pk-text-secondary); margin-bottom: 4px; }
+    .payment-expiry { font-size: 0.82rem; color: var(--pk-text-muted); }
+
+    /* Password Form */
+    .password-card { background: var(--pk-surface); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow-sm); max-width: 500px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--pk-text-secondary); margin-bottom: 6px; }
+    .form-input { width: 100%; padding: 12px 14px; background: var(--pk-bg); border: 1.5px solid var(--pk-border); border-radius: var(--radius-md); font-size: 0.9rem; color: var(--pk-navy); outline: none; }
+    .form-input:focus { border-color: var(--pk-violet); }
+    .btn-violet { padding: 12px 28px; background: var(--pk-violet); color: #fff; border: none; border-radius: var(--radius-lg); font-weight: 600; cursor: pointer; }
+    .btn-violet:hover { background: #7c3aed; }
+
+    /* Empty State */
+    .empty-state { text-align: center; padding: 48px 20px; }
+    .empty-state-icon { font-size: 3rem; margin-bottom: 12px; }
+    .empty-state h3 { font-size: 1.1rem; color: var(--pk-navy); margin-bottom: 8px; }
+    .empty-state p { color: var(--pk-text-muted); margin-bottom: 16px; }
+
+    @media (max-width: 900px) {
+      .account-layout { grid-template-columns: 1fr; }
+      .account-sidebar { position: static; }
+      .stats-row { grid-template-columns: 1fr; }
+      .order-row { grid-template-columns: 1fr; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="pk-header" id="navbar"></header>
+
+  <main class="account-page">
+    <div class="container">
+      <div class="account-breadcrumb"><a href="/">Home</a> &rsaquo; <span>My Account</span></div>
+      <h1 class="account-title">My <span>Account</span></h1>
+      <p class="account-subtitle" id="welcome-text">Welcome back!</p>
+
+      <div class="account-layout">
+        <!-- Sidebar -->
+        <div class="account-sidebar">
+          <div class="account-avatar" id="user-avatar">?</div>
+          <div class="account-name" id="user-name">Loading...</div>
+          <div class="account-email" id="user-email">...</div>
+          <nav class="account-nav">
+            <button class="account-nav-item active" onclick="switchTab('overview')">&#127968; Overview</button>
+            <button class="account-nav-item" onclick="switchTab('orders')">&#128230; Order History</button>
+            <button class="account-nav-item" onclick="switchTab('wishlist')">&#10084; Wishlist</button>
+            <button class="account-nav-item" onclick="switchTab('addresses')">&#128205; Addresses</button>
+            <button class="account-nav-item" onclick="switchTab('payment')">&#128179; Payment Methods</button>
+            <button class="account-nav-item" onclick="switchTab('security')">&#128272; Password & Security</button>
+            <hr class="account-nav-divider">
+            <button class="account-nav-item danger" onclick="signOutUser()">&#128682; Sign Out</button>
+          </nav>
+        </div>
+
+        <!-- Content -->
+        <div class="account-content">
+          <!-- Overview Tab -->
+          <div class="tab-panel active" id="tab-overview">
+            <div class="stats-row">
+              <div class="stat-card"><div class="stat-icon">&#128230;</div><div class="stat-label">Total Orders</div><div class="stat-value" id="stat-orders">0</div></div>
+              <div class="stat-card"><div class="stat-icon">&#10084;</div><div class="stat-label">Wishlist Items</div><div class="stat-value" id="stat-wishlist">0</div></div>
+              <div class="stat-card"><div class="stat-icon">&#128666;</div><div class="stat-label">Active Order</div><div class="stat-value" id="stat-active">—</div><a href="#" class="stat-link" id="stat-active-link" style="display:none;">Track &rarr;</a></div>
+            </div>
+            <div class="orders-card">
+              <div class="orders-header"><h3>Recent Orders</h3><a href="#" onclick="switchTab('orders')">View All &rarr;</a></div>
+              <div id="recent-orders-list"><p style="text-align:center;padding:20px;color:var(--pk-text-muted);">Loading...</p></div>
+            </div>
+          </div>
+
+          <!-- Orders Tab -->
+          <div class="tab-panel" id="tab-orders">
+            <div class="orders-card">
+              <div class="orders-header"><h3>Order History</h3></div>
+              <div id="all-orders-list"><p style="text-align:center;padding:20px;color:var(--pk-text-muted);">Loading...</p></div>
+            </div>
+          </div>
+
+          <!-- Wishlist Tab -->
+          <div class="tab-panel" id="tab-wishlist">
+            <div class="wishlist-grid" id="wishlist-grid"><p style="text-align:center;padding:40px;color:var(--pk-text-muted);">Loading...</p></div>
+          </div>
+
+          <!-- Addresses Tab -->
+          <div class="tab-panel" id="tab-addresses">
+            <div class="address-grid" id="address-grid"></div>
+            <button class="btn-add-outline" style="margin-top:16px;">+ Add New Address</button>
+          </div>
+
+          <!-- Payment Tab -->
+          <div class="tab-panel" id="tab-payment">
+            <div class="payment-grid" id="payment-grid">
+              <div class="payment-card default">
+                <div class="payment-brand">VISA</div>
+                <div class="payment-number">&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 4242</div>
+                <div class="payment-expiry">Expires 12/26</div>
+                <span class="address-default" style="position:absolute;top:16px;right:16px;">Default</span>
+              </div>
+            </div>
+            <button class="btn-add-outline" style="margin-top:16px;">+ Add New Payment Method</button>
+            <p style="margin-top:16px;font-size:0.82rem;color:var(--pk-text-muted);display:flex;align-items:center;gap:6px;"><span style="color:var(--pk-success);">&#128274;</span> Secure payments powered by Nomod. Your payment information is encrypted and secure.</p>
+          </div>
+
+          <!-- Security Tab -->
+          <div class="tab-panel" id="tab-security">
+            <div class="password-card">
+              <h3 style="font-size:1.1rem;font-weight:700;color:var(--pk-navy);margin-bottom:20px;">Change Password</h3>
+              <div class="form-group"><label class="form-label">Current Password</label><input class="form-input" type="password" id="pw-current"></div>
+              <div class="form-group"><label class="form-label">New Password</label><input class="form-input" type="password" id="pw-new"></div>
+              <div class="form-group"><label class="form-label">Confirm New Password</label><input class="form-input" type="password" id="pw-confirm"></div>
+              <button class="btn-violet" onclick="updatePassword()">Update Password</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer id="footer"></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/env.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/supabase.js"></script>
+  <script src="/js/settings.js"></script>
+  <script src="/js/components.js"></script>
+  <script>
+  (function() {
+    'use strict';
+    var db = window.db;
+    var currentUser = null;
+
+    document.addEventListener('DOMContentLoaded', async function() {
+      if (!db) await new Promise(function(r) { setTimeout(r, 300); });
+      var session = await getSession();
+      if (!session) { window.location.href = '/pages/login.html?redirect=/pages/account.html'; return; }
+      currentUser = session.user;
+      await loadProfile();
+      await loadOverview();
+    });
+
+    async function loadProfile() {
+      var profile = await getUserProfile(currentUser.id);
+      if (profile) {
+        document.getElementById('user-name').textContent = profile.full_name || currentUser.email;
+        document.getElementById('user-email').textContent = currentUser.email;
+        document.getElementById('user-avatar').textContent = (profile.full_name || currentUser.email || '?').charAt(0).toUpperCase();
+        document.getElementById('welcome-text').textContent = 'Welcome back, ' + (profile.full_name || '').split(' ')[0] + '!';
+      }
+    }
+
+    async function loadOverview() {
+      // Orders count
+      var orders = await db.from('orders').select('id, order_number, status, total, created_at, order_items(id)').eq('user_id', currentUser.id).order('created_at', {ascending: false});
+      var orderData = orders.data || [];
+      document.getElementById('stat-orders').textContent = orderData.length;
+
+      // Wishlist
+      var wl = await db.from('wishlist').select('id').eq('user_id', currentUser.id);
+      document.getElementById('stat-wishlist').textContent = (wl.data || []).length;
+
+      // Active order
+      var active = orderData.find(function(o) { return o.status === 'pending' || o.status === 'processing' || o.status === 'shipped'; });
+      if (active) {
+        document.getElementById('stat-active').textContent = '#' + active.order_number;
+        document.getElementById('stat-active-link').href = '/pages/account/orders/' + active.id + '/tracking.html';
+        document.getElementById('stat-active-link').style.display = '';
+      }
+
+      // Recent orders (3)
+      renderOrders(orderData.slice(0, 3), 'recent-orders-list');
+      renderOrders(orderData, 'all-orders-list');
+    }
+
+    function renderOrders(orders, containerId) {
+      var container = document.getElementById(containerId);
+      if (!orders.length) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">&#128230;</div><h3>No orders yet</h3><p>Start shopping to see your orders here.</p><a href="/pages/shop.html" class="btn-sm btn-sm-violet">Shop Laptops &rarr;</a></div>';
+        return;
+      }
+      var html = '';
+      orders.forEach(function(o) {
+        var date = new Date(o.created_at).toLocaleDateString('en-AE', { year: 'numeric', month: 'short', day: 'numeric' });
+        var badge = o.status || 'pending';
+        html += '<div class="order-row">' +
+          '<div><div class="order-num">#' + o.order_number + '</div><div class="order-date">' + date + '</div></div>' +
+          '<div class="order-thumbs">' + (o.order_items || []).slice(0,3).map(function() { return '<div class="order-thumb"><img src="/assets/placeholder-laptop.png" alt=""></div>'; }).join('') + '</div>' +
+          '<div><span class="status-badge ' + badge + '">' + badge.charAt(0).toUpperCase() + badge.slice(1) + '</span></div>' +
+          '<div class="order-total">' + formatPrice(o.total) + '</div>' +
+          '<div style="display:flex;gap:6px;">' +
+            (badge === 'shipped' || badge === 'processing' ? '<a href="/pages/account/orders/' + o.id + '/tracking.html" class="btn-sm btn-sm-violet">Track</a>' : '') +
+            '<button class="btn-sm btn-sm-outline" onclick="viewOrder(\'' + o.id + '\')">Details</button>' +
+          '</div></div>';
+      });
+      container.innerHTML = html;
+    }
+
+    window.switchTab = function(tab) {
+      document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+      document.querySelectorAll('.account-nav-item').forEach(function(n) { n.classList.remove('active'); });
+      document.getElementById('tab-' + tab).classList.add('active');
+      event.currentTarget.classList.add('active');
+    };
+
+    window.signOutUser = async function() {
+      await db.auth.signOut();
+      window.location.href = '/';
+    };
+
+    window.updatePassword = async function() {
+      var current = document.getElementById('pw-current').value;
+      var newPw = document.getElementById('pw-new').value;
+      var confirm = document.getElementById('pw-confirm').value;
+      if (!current || !newPw || !confirm) { alert('Please fill in all fields.'); return; }
+      if (newPw !== confirm) { alert('New passwords do not match.'); return; }
+      if (newPw.length < 6) { alert('Password must be at least 6 characters.'); return; }
+      var result = await db.auth.updateUser({ password: newPw });
+      if (result.error) { alert('Error: ' + result.error.message); return; }
+      alert('Password updated successfully!');
+      document.getElementById('pw-current').value = '';
+      document.getElementById('pw-new').value = '';
+      document.getElementById('pw-confirm').value = '';
+    };
+
+    window.viewOrder = function(id) { window.location.href = '/pages/account/orders/' + id + '/tracking.html'; };
+
+    // Load wishlist
+    (async function() {
+      if (!db) return;
+      var session = await getSession();
+      if (!session) return;
+      var wl = await db.from('wishlist').select('*, products(id, name, brand, price)').eq('user_id', session.user.id);
+      var grid = document.getElementById('wishlist-grid');
+      if (!wl.data || !wl.data.length) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">&#10084;</div><h3>Your wishlist is empty</h3><p>Browse our laptops and save your favorites.</p><a href="/pages/shop.html" class="btn-sm btn-sm-violet">Browse Laptops &rarr;</a></div>';
+        return;
+      }
+      var html = '';
+      wl.data.forEach(function(w) {
+        var p = w.products;
+        if (!p) return;
+        html += '<div class="wishlist-card"><button class="wishlist-remove" onclick="removeWish(\'' + w.id + '\')">&#10005;</button>' +
+          '<div class="wishlist-card-img"><img src="/assets/placeholder-laptop.png" alt=""></div>' +
+          '<div class="wishlist-card-body"><div class="wishlist-card-brand">' + esc(p.brand || '') + '</div><div class="wishlist-card-name">' + esc(p.name) + '</div>' +
+          '<div class="wishlist-card-price">' + formatPrice(p.price) + '</div></div></div>';
+      });
+      grid.innerHTML = html;
+    })();
+
+    window.removeWish = async function(id) {
+      await db.from('wishlist').delete().eq('id', id);
+      location.reload();
+    };
+
+    function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+  })();
+  </script>
+</body>
+</html>

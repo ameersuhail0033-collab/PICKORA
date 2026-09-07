@@ -51,9 +51,9 @@
       var variant = item.product_variants;
       if (!product) continue;
 
-      var imgUrl = 'https://picsum.photos/seed/product/80/80';
+      var imgUrl = '';
       var imgResult = await db.from('product_images').select('url').eq('product_id', product.id).eq('is_primary', true).limit(1);
-      if (imgResult.data && imgResult.data.length > 0) imgUrl = imgResult.data[0].url;
+      if (imgResult.data && imgResult.data.length > 0) imgUrl = productImageUrl(imgResult.data[0].url);
 
       var price = variant ? variant.price : product.price;
       subtotal += price * item.quantity;
@@ -189,8 +189,14 @@
       if (!user) throw new Error('Please sign in');
 
       var form = document.getElementById('step-shipping');
+      var shippingPhone = (form.querySelector('[name="shipping_phone"]') || {}).value || '';
+      shippingPhone = shippingPhone.trim();
+      if (!/^\+?[0-9][0-9\s\-()]{6,19}$/.test(shippingPhone)) {
+        throw new Error('Please enter a valid phone number (e.g. +971 50 123 4567).');
+      }
       var shipping = {
         shipping_name: form.querySelector('[name="shipping_name"]').value.trim(),
+        shipping_phone: shippingPhone,
         shipping_address: form.querySelector('[name="shipping_address"]').value.trim(),
         shipping_city: form.querySelector('[name="shipping_city"]').value.trim(),
         shipping_state: form.querySelector('[name="shipping_state"]').value.trim(),
@@ -245,7 +251,7 @@
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + session.access_token,
         },
-        body: JSON.stringify({ order_id: orderId }),
+        body: JSON.stringify({ order_id: orderId, customer_phone: shippingPhone }),
       });
 
       var data = await resp.json();
