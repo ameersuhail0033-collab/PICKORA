@@ -58,23 +58,6 @@
             <a href="/pages/shop.html?category=deals" class="pk-btn pk-btn-outline pk-btn-lg">VIEW DEALS</a>
           </div>
 
-          <!-- Product hero image — loaded dynamically from Supabase -->
-          <div class="pk-hero-image-area pk-reveal-scale" id="hero-image-area">
-            <img class="pk-hero-image"
-              id="hero-image"
-              src=""
-              alt="Premium refurbished laptop — Pickora"
-              decoding="async"
-              loading="eager"
-              style="display:none;">
-            <div class="pk-hero-image-fallback" id="hero-image-fallback">
-              <div class="hero-laptop-visual">
-                <div class="hero-laptop-screen"></div>
-                <div class="hero-laptop-base"></div>
-              </div>
-            </div>
-          </div>
-
           <!-- Social -->
           <div class="pk-hero-social pk-reveal">
             <span class="pk-hero-social-label">Follow us on:</span>
@@ -83,8 +66,17 @@
           </div>
         </div>
 
-        <!-- Right Side Cards -->
+        <!-- Right Side: Hero Visual + Side Cards -->
         <div class="pk-hero-side">
+          <!-- Hero Laptop Visual -->
+          <div class="pk-hero-visual" id="hero-image-area">
+            <div class="pk-hero-image-fallback" id="hero-image-fallback">
+              <div class="hero-laptop-visual">
+                <div class="hero-laptop-screen"></div>
+                <div class="hero-laptop-base"></div>
+              </div>
+            </div>
+          </div>
           <a href="/pages/shop.html?category=gaming-laptops" class="pk-hero-side-card pk-reveal" style="transition-delay:0.1s">
             <div>
               <div class="pk-hero-side-card-title">Shop by Brand</div>

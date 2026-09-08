@@ -129,16 +129,11 @@
     gsap.registerPlugin(ScrollTrigger);
 
     // Mark hero elements as GSAP-controlled
-    document.querySelectorAll('.pk-hero .pk-reveal, .pk-hero-image-area').forEach(function (el) {
+    document.querySelectorAll('.pk-hero .pk-reveal, .pk-hero-visual').forEach(function (el) {
       el.classList.remove('pk-reveal');
       el.style.opacity = '1';
       el.style.transform = 'none';
     });
-
-    var heroArea = document.querySelector('.pk-hero-image-area');
-    if (heroArea) {
-      heroArea.style.background = 'var(--pk-surface)';
-    }
 
     var heroTl = gsap.timeline({ defaults: { ease: 'power3.out', duration: 0.8 } });
 
@@ -171,7 +166,7 @@
         y: 20,
         duration: 0.5
       }, '-=0.2')
-      .from('.pk-hero-image-area', {
+      .from('.pk-hero-visual', {
         opacity: 0,
         scale: 0.92,
         y: 40,
@@ -195,9 +190,9 @@
         duration: 0.4
       }, '-=0.3');
 
-    // Hero image parallax
-    gsap.to('.pk-hero-image', {
-      y: -60,
+    // Hero visual subtle parallax
+    gsap.to('.pk-hero-visual', {
+      y: -30,
       ease: 'none',
       scrollTrigger: {
         trigger: '.pk-hero',
@@ -218,22 +213,15 @@
     });
   }
 
-  /* ── HERO IMAGE LOAD — never block the page ──────────── */
+  /* ── HERO IMAGE LOAD — CSS fallback laptop visual ─────── */
 
   function initHeroImageLoad() {
-    var img = document.getElementById('hero-image');
+    // Always use the CSS fallback laptop visual.
+    // Product images from Supabase have white backgrounds
+    // that overlap the hero text and CTA buttons.
     var fallback = document.getElementById('hero-image-fallback');
-    if (!img) return;
-
-    // Always use the CSS fallback laptop visual instead of loading
-    // a product image from Supabase. Product images have white
-    // backgrounds that overlap the hero text and CTA buttons.
-    img.style.display = 'none';
     if (fallback) fallback.style.display = 'flex';
   }
-
-  // Hero image loading removed - always use CSS fallback laptop visual
-  // Product images from Supabase have white backgrounds that overlap hero text
 
   /* ── SCROLL REVEALS — Safe Initialization ─────────────── */
 
@@ -400,7 +388,7 @@
       el.style.transform = 'none';
       el.dataset.revealComplete = 'true';
     });
-    document.querySelectorAll('#hero-shell, .pk-hero-num, .pk-hero-subtitle, .pk-hero-cta, .pk-hero-image, .pk-hero-side-card, .pk-bottom-card, .pk-hero-social').forEach(function (el) {
+    document.querySelectorAll('#hero-shell, .pk-hero-num, .pk-hero-subtitle, .pk-hero-cta, .pk-hero-visual, .pk-hero-side-card, .pk-bottom-card, .pk-hero-social').forEach(function (el) {
       el.style.opacity = '1';
       el.style.transform = 'none';
     });

@@ -126,6 +126,8 @@ const sendPage = (file) => (req, res) => {
 };
 
 app.get('/', sendPage('index.html'));
+
+/* Short clean-URL routes */
 app.get('/shop', sendPage('pages/shop.html'));
 app.get('/product/:slug', sendPage('pages/product.html'));
 app.get('/cart', sendPage('pages/cart.html'));
@@ -138,6 +140,28 @@ app.get('/register', sendPage('pages/register.html'));
 app.get('/forgot-password', sendPage('pages/forgot-password.html'));
 app.get('/reset-password', sendPage('pages/reset-password.html'));
 app.get('/setup', sendPage('setup.html'));
+
+/* /pages/* clean-URL routes (preserve query strings) */
+app.get('/pages/shop', sendPage('pages/shop.html'));
+app.get('/pages/product', sendPage('pages/product.html'));
+app.get('/pages/cart', sendPage('pages/cart.html'));
+app.get('/pages/checkout', sendPage('pages/checkout.html'));
+app.get('/pages/wishlist', sendPage('pages/wishlist.html'));
+app.get('/pages/orders', sendPage('pages/orders.html'));
+app.get('/pages/profile', sendPage('pages/profile.html'));
+app.get('/pages/login', sendPage('pages/login.html'));
+app.get('/pages/register', sendPage('pages/register.html'));
+app.get('/pages/forgot-password', sendPage('pages/forgot-password.html'));
+app.get('/pages/reset-password', sendPage('pages/reset-password.html'));
+app.get('/pages/account', sendPage('pages/account.html'));
+
+/* Account order tracking: /pages/account/orders/:id/tracking */
+app.get('/pages/account/orders/:id/tracking', sendPage('pages/account/orders/[id]/tracking.html'));
+
+/* Checkout success */
+app.get('/pages/checkout/success', sendPage('pages/checkout/success.html'));
+
+/* Admin routes */
 app.get('/admin', (req, res) => res.redirect(302, '/admin/dashboard'));
 app.get('/admin/', (req, res) => res.redirect(302, '/admin/dashboard'));
 app.get('/admin/dashboard', sendPage('admin/dashboard.html'));
