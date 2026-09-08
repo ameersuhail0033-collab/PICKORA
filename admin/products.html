@@ -6,178 +6,183 @@
     <title>Products — Pickora Admin</title>
     <meta name="robots" content="noindex, nofollow">
     <link rel="icon" type="image/png" href="/assets/icons/favicon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/admin.css">
     <style>
-        /* Products page specific */
-        .products-toolbar {
+        /* ── Minimal products page ─────────────────────────────── */
+        .page-head {
             display: flex; align-items: center; justify-content: space-between;
-            flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
+            gap: 16px; margin-bottom: 20px;
         }
-        .products-toolbar-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 200px; }
-        .products-toolbar-right { display: flex; align-items: center; gap: 8px; }
-        .search-box {
+        .page-head h1 {
+            font-size: 18px; font-weight: 600; margin: 0; color: var(--admin-text);
+            letter-spacing: -0.01em;
+        }
+        .page-head-sub {
+            font-size: 12.5px; color: var(--admin-text-muted); margin-top: 3px;
+        }
+
+        .toolbar {
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .search {
             display: flex; align-items: center; gap: 8px;
             background: var(--admin-surface); border: 1px solid var(--admin-border);
-            border-radius: var(--admin-radius); padding: 8px 12px; flex: 1; max-width: 320px;
+            border-radius: 8px; padding: 7px 11px; flex: 0 1 260px;
         }
-        .search-box input {
+        .search i { color: var(--admin-text-muted); font-size: 12px; }
+        .search input {
             background: none; border: none; color: var(--admin-text);
             font-size: 13px; outline: none; width: 100%;
         }
-        .search-box input::placeholder { color: var(--admin-text-muted); }
-        .search-box i { color: var(--admin-text-muted); font-size: 14px; }
-        .filter-select {
+        .search input::placeholder { color: var(--admin-text-muted); }
+        .select {
             background: var(--admin-surface); border: 1px solid var(--admin-border);
-            border-radius: var(--admin-radius); color: var(--admin-text);
-            padding: 8px 12px; font-size: 13px; outline: none; cursor: pointer;
+            border-radius: 8px; color: var(--admin-text); padding: 7px 10px;
+            font-size: 13px; outline: none; cursor: pointer;
         }
-        .filter-select option { background: var(--admin-surface); color: var(--admin-text); }
-        .btn-add {
+        .select option { background: var(--admin-surface); color: var(--admin-text); }
+        .spacer { flex: 1; }
+        .btn-new {
             display: inline-flex; align-items: center; gap: 6px;
-            background: var(--admin-primary); color: white; border: none;
-            border-radius: var(--admin-radius); padding: 8px 16px;
-            font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s;
+            background: var(--admin-secondary); color: #fff; border: none;
+            border-radius: 8px; padding: 7px 14px; font-size: 13px;
+            font-weight: 500; cursor: pointer; transition: background 0.15s;
         }
-        .btn-add:hover { background: var(--admin-accent); }
+        .btn-new:hover { background: #7c3aed; }
 
-        /* Product count */
-        .products-count {
-            font-size: 13px; color: var(--admin-text-secondary); margin-bottom: 16px;
+        .count-row {
+            font-size: 12px; color: var(--admin-text-muted); margin-bottom: 10px;
         }
 
-        /* Table */
-        .products-table {
-            width: 100%; border-collapse: collapse;
+        /* Minimal table */
+        .table-wrap {
+            background: var(--admin-surface); border: 1px solid var(--admin-border);
+            border-radius: 10px; overflow-x: auto;
         }
-        .products-table th {
-            text-align: left; padding: 12px 16px; font-size: 12px;
-            font-weight: 600; color: var(--admin-text-secondary);
-            text-transform: uppercase; letter-spacing: 0.05em;
-            border-bottom: 1px solid var(--admin-border);
+        .tbl { width: 100%; border-collapse: collapse; }
+        .tbl th {
+            text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 500;
+            color: var(--admin-text-muted); text-transform: uppercase;
+            letter-spacing: 0.06em; border-bottom: 1px solid var(--admin-border);
         }
-        .products-table td {
-            padding: 12px 16px; font-size: 13px;
-            border-bottom: 1px solid var(--admin-border);
-            vertical-align: middle;
+        .tbl td {
+            padding: 9px 14px; font-size: 13px; color: var(--admin-text-secondary);
+            border-bottom: 1px solid var(--admin-border-light);
         }
-        .products-table tr:hover td { background: var(--admin-surface-hover); }
-        .products-table .prod-img {
-            width: 40px; height: 40px; border-radius: 6px;
-            object-fit: cover; background: var(--admin-surface-hover);
+        .tbl tbody tr:last-child td { border-bottom: none; }
+        .tbl tbody tr:hover td { background: var(--admin-surface-hover); }
+        .tbl .p-img {
+            width: 34px; height: 34px; border-radius: 6px; object-fit: cover;
+            background: var(--admin-surface-hover); display: block;
         }
-        .products-table .prod-name { font-weight: 500; }
-        .products-table .prod-brand { font-size: 12px; color: var(--admin-text-secondary); }
-        .products-table .prod-sku { font-size: 12px; color: var(--admin-text-muted); font-family: monospace; }
-        .products-table .prod-price { font-weight: 600; font-variant-numeric: tabular-nums; }
-        .products-table .prod-stock { font-variant-numeric: tabular-nums; }
-        .products-table .prod-stock.low { color: var(--admin-negative); font-weight: 600; }
-        .products-table .prod-stock.ok { color: var(--admin-positive); }
-        .status-badge {
-            display: inline-block; padding: 3px 8px; border-radius: 4px;
-            font-size: 11px; font-weight: 500;
+        .tbl .p-name { color: var(--admin-text); font-weight: 500; }
+        .tbl .p-sub { font-size: 11.5px; color: var(--admin-text-muted); margin-top: 1px; }
+        .tbl .p-sku { font-size: 12px; color: var(--admin-text-muted); font-family: ui-monospace, monospace; }
+        .tbl .p-price { color: var(--admin-text); font-weight: 500; font-variant-numeric: tabular-nums; }
+        .tbl .p-stock { font-variant-numeric: tabular-nums; }
+        .tbl .p-stock.low { color: var(--admin-negative); }
+        .dot {
+            display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+            margin-right: 6px; vertical-align: middle;
         }
-        .status-badge.active { background: rgba(34,197,94,0.15); color: var(--admin-positive); }
-        .status-badge.inactive { background: rgba(239,68,68,0.15); color: var(--admin-negative); }
-        .action-btns { display: flex; gap: 6px; }
-        .action-btn {
-            width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--admin-border);
-            background: transparent; color: var(--admin-text-secondary); cursor: pointer;
-            display: flex; align-items: center; justify-content: center; font-size: 13px;
-            transition: all 0.15s;
+        .dot.on { background: var(--admin-positive); }
+        .dot.off { background: var(--admin-text-muted); }
+        .row-actions { display: flex; gap: 2px; justify-content: flex-end; }
+        .icon-btn {
+            width: 28px; height: 28px; border-radius: 6px; border: none;
+            background: transparent; color: var(--admin-text-muted); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 12px;
+            transition: all 0.12s;
         }
-        .action-btn:hover { background: var(--admin-surface-hover); color: var(--admin-text); border-color: var(--admin-primary); }
-        .action-btn.danger:hover { color: var(--admin-negative); border-color: var(--admin-negative); }
+        .icon-btn:hover { background: var(--admin-surface-hover); color: var(--admin-text); }
+        .icon-btn.danger:hover { color: var(--admin-negative); }
 
-        /* Pagination */
-        .pagination { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 16px; }
-        .page-btn {
-            padding: 6px 12px; border-radius: 6px; border: 1px solid var(--admin-border);
-            background: transparent; color: var(--admin-text-secondary); font-size: 13px;
-            cursor: pointer; transition: all 0.15s;
+        /* Minimal pagination */
+        .pager {
+            display: flex; align-items: center; justify-content: center;
+            gap: 4px; padding: 14px 0 4px;
         }
-        .page-btn:hover { border-color: var(--admin-primary); color: var(--admin-text); }
-        .page-btn.active { background: var(--admin-primary); color: white; border-color: var(--admin-primary); }
-        .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-        /* Empty state */
-        .empty-state {
-            text-align: center; padding: 48px 24px;
-            color: var(--admin-text-secondary); font-size: 14px;
+        .pg {
+            min-width: 30px; height: 30px; padding: 0 8px; border-radius: 6px;
+            border: 1px solid transparent; background: transparent;
+            color: var(--admin-text-secondary); font-size: 12.5px; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: all 0.12s;
         }
-        .empty-state i { font-size: 48px; color: var(--admin-text-muted); margin-bottom: 16px; display: block; }
+        .pg:hover { background: var(--admin-surface-hover); color: var(--admin-text); }
+        .pg.active { background: var(--admin-secondary); color: #fff; }
+        .pg:disabled { opacity: 0.35; cursor: not-allowed; }
+        .pg-dots { color: var(--admin-text-muted); padding: 0 2px; }
 
-        /* Modal */
+        .empty {
+            text-align: center; padding: 40px 20px; color: var(--admin-text-muted); font-size: 13px;
+        }
+        .empty i { font-size: 32px; display: block; margin-bottom: 10px; opacity: 0.5; }
+
+        /* Minimal modal */
         .modal-overlay {
             position: fixed; inset: 0; z-index: 9000;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
-            display: none; align-items: center; justify-content: center;
-            padding: 24px;
+            background: rgba(0,0,0,0.55); backdrop-filter: blur(3px);
+            display: none; align-items: center; justify-content: center; padding: 24px;
         }
         .modal-overlay.active { display: flex; }
-        .modal-box {
+        .modal {
             background: var(--admin-surface); border: 1px solid var(--admin-border);
-            border-radius: var(--admin-radius-lg); width: 100%; max-width: 720px;
-            max-height: 90vh; overflow-y: auto;
+            border-radius: 12px; width: 100%; max-width: 640px; max-height: 90vh;
+            overflow-y: auto;
         }
-        .modal-header {
+        .modal-head {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 20px 24px; border-bottom: 1px solid var(--admin-border);
+            padding: 16px 20px; border-bottom: 1px solid var(--admin-border);
         }
-        .modal-header h3 { font-size: 16px; font-weight: 600; margin: 0; }
-        .modal-close {
-            width: 32px; height: 32px; border-radius: 6px; border: none;
-            background: var(--admin-surface-hover); color: var(--admin-text-secondary);
-            cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center;
+        .modal-head h3 { font-size: 15px; font-weight: 600; margin: 0; }
+        .modal-x {
+            width: 28px; height: 28px; border-radius: 6px; border: none;
+            background: transparent; color: var(--admin-text-muted);
+            cursor: pointer; font-size: 16px; display: flex;
+            align-items: center; justify-content: center;
         }
-        .modal-close:hover { color: var(--admin-text); }
-        .modal-body { padding: 24px; }
-
-        /* Form */
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .form-group { display: flex; flex-direction: column; gap: 6px; }
-        .form-group.full { grid-column: 1 / -1; }
-        .form-label { font-size: 12px; font-weight: 500; color: var(--admin-text-secondary); }
-        .form-input, .form-select, .form-textarea {
+        .modal-x:hover { color: var(--admin-text); background: var(--admin-surface-hover); }
+        .modal-body { padding: 20px; }
+        .fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .fgroup { display: flex; flex-direction: column; gap: 5px; }
+        .fgroup.full { grid-column: 1 / -1; }
+        .flabel { font-size: 12px; font-weight: 500; color: var(--admin-text-secondary); }
+        .fin, .fsel, .fta {
             background: var(--admin-bg); border: 1px solid var(--admin-border);
-            border-radius: var(--admin-radius-sm); padding: 10px 12px;
-            color: var(--admin-text); font-size: 13px; outline: none;
-            transition: border-color 0.15s;
+            border-radius: 8px; padding: 8px 11px; color: var(--admin-text);
+            font-size: 13px; outline: none; transition: border-color 0.12s;
+            font-family: inherit; width: 100%;
         }
-        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--admin-primary); }
-        .form-textarea { resize: vertical; min-height: 80px; }
-        .form-check {
-            display: flex; align-items: center; gap: 8px; font-size: 13px;
-            color: var(--admin-text-secondary); cursor: pointer;
-        }
-        .form-check input[type="checkbox"] { accent-color: var(--admin-primary); }
-        .modal-footer {
+        .fin:focus, .fsel:focus, .fta:focus { border-color: var(--admin-secondary); }
+        .fta { resize: vertical; min-height: 70px; }
+        .fcheck { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--admin-text-secondary); cursor: pointer; }
+        .fcheck input { accent-color: var(--admin-secondary); }
+        .modal-foot {
             display: flex; justify-content: flex-end; gap: 8px;
-            padding: 16px 24px; border-top: 1px solid var(--admin-border);
+            padding: 14px 20px; border-top: 1px solid var(--admin-border);
         }
-        .btn-cancel {
-            padding: 8px 16px; border-radius: var(--admin-radius); border: 1px solid var(--admin-border);
+        .btn-ghost {
+            padding: 7px 14px; border-radius: 8px; border: 1px solid var(--admin-border);
             background: transparent; color: var(--admin-text-secondary); font-size: 13px;
-            cursor: pointer; transition: all 0.15s;
+            cursor: pointer;
         }
-        .btn-cancel:hover { border-color: var(--admin-text-secondary); color: var(--admin-text); }
-        .btn-save {
-            padding: 8px 20px; border-radius: var(--admin-radius); border: none;
-            background: var(--admin-primary); color: white; font-size: 13px;
-            font-weight: 500; cursor: pointer; transition: all 0.15s;
+        .btn-ghost:hover { color: var(--admin-text); border-color: var(--admin-text-secondary); }
+        .btn-primary {
+            padding: 7px 16px; border-radius: 8px; border: none;
+            background: var(--admin-secondary); color: #fff; font-size: 13px;
+            font-weight: 500; cursor: pointer;
         }
-        .btn-save:hover { background: var(--admin-accent); }
+        .btn-primary:hover { background: #7c3aed; }
 
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .products-toolbar { flex-direction: column; align-items: stretch; }
-            .products-toolbar-left { max-width: none; }
-            .search-box { max-width: none; }
-        }
         @media (max-width: 768px) {
-            .form-grid { grid-template-columns: 1fr; }
-            .products-table { font-size: 12px; }
-            .products-table th, .products-table td { padding: 8px 10px; }
+            .fgrid { grid-template-columns: 1fr; }
+            .toolbar { flex-wrap: wrap; }
+            .search { flex: 1 1 100%; }
+            .tbl { font-size: 12px; }
+            .tbl th, .tbl td { padding: 8px 10px; }
         }
     </style>
 </head>
@@ -233,7 +238,7 @@
         </div>
     </aside>
 
-    <!-- Main content -->
+    <!-- Main -->
     <main class="admin-main">
         <header class="admin-topbar">
             <div class="admin-topbar-left">
@@ -243,99 +248,88 @@
                 </div>
             </div>
             <div class="admin-topbar-right">
-                <div class="admin-topbar-search">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search..." id="globalSearch">
-                </div>
-                <button class="admin-topbar-icon" title="Notifications">
-                    <i class="fas fa-bell"></i>
-                </button>
-                <div class="admin-topbar-avatar" id="adminAvatar" title="Admin">
-                    <i class="fas fa-user"></i>
-                </div>
+                <button class="admin-topbar-icon" title="Notifications"><i class="fas fa-bell"></i></button>
+                <div class="admin-topbar-avatar" id="adminAvatar" title="Admin"><i class="fas fa-user"></i></div>
             </div>
         </header>
 
         <div class="admin-content">
-            <!-- Toolbar -->
-            <div class="products-toolbar">
-                <div class="products-toolbar-left">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="productSearch" placeholder="Search products..." oninput="filterProducts()">
-                    </div>
-                    <select class="filter-select" id="categoryFilter" onchange="filterProducts()">
-                        <option value="">All Categories</option>
-                    </select>
-                    <select class="filter-select" id="brandFilter" onchange="filterProducts()">
-                        <option value="">All Brands</option>
-                    </select>
+            <div class="page-head">
+                <div>
+                    <h1>Products</h1>
+                    <div class="page-head-sub" id="productsCount">Loading…</div>
                 </div>
-                <div class="products-toolbar-right">
-                    <button class="btn-add" onclick="openProductForm()">
-                        <i class="fas fa-plus"></i> Add Product
-                    </button>
-                </div>
+                <button class="btn-new" onclick="openProductForm()"><i class="fas fa-plus"></i> New Product</button>
             </div>
 
-            <div class="products-count" id="productsCount">Loading products...</div>
+            <div class="toolbar">
+                <div class="search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="productSearch" placeholder="Search name or SKU…" oninput="filterProducts()">
+                </div>
+                <select class="select" id="categoryFilter" onchange="filterProducts()">
+                    <option value="">All Categories</option>
+                </select>
+                <select class="select" id="brandFilter" onchange="filterProducts()">
+                    <option value="">All Brands</option>
+                </select>
+            </div>
 
-            <!-- Table -->
-            <div class="admin-card" style="padding:0; overflow-x:auto;">
-                <table class="products-table">
+            <div class="table-wrap">
+                <table class="tbl">
                     <thead>
                         <tr>
-                            <th>Image</th>
+                            <th style="width:44px;"></th>
                             <th>Product</th>
                             <th>SKU</th>
                             <th>Price</th>
                             <th>Stock</th>
                             <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
+                            <th style="text-align:right;">&nbsp;</th>
+                        </th>
                     </thead>
                     <tbody id="productsBody">
-                        <tr><td colspan="7" class="empty-state"><i class="fas fa-spinner fa-spin"></i>Loading...</td></tr>
+                        <tr><td colspan="7" class="empty"><i class="fas fa-spinner fa-spin"></i>Loading…</td></tr>
                     </tbody>
                 </table>
             </div>
 
-            <div class="pagination" id="productsPagination"></div>
+            <div class="pager" id="productsPagination"></div>
         </div>
     </main>
 
     <!-- Product Form Modal -->
     <div class="modal-overlay" id="productModal">
-        <div class="modal-box">
-            <div class="modal-header">
+        <div class="modal">
+            <div class="modal-head">
                 <h3 id="modalTitle">Add Product</h3>
-                <button class="modal-close" onclick="closeProductForm()">&times;</button>
+                <button class="modal-x" onclick="closeProductForm()">&times;</button>
             </div>
             <form id="productForm" onsubmit="saveProduct(event)">
                 <div class="modal-body">
                     <input type="hidden" name="id" id="pf-id">
-                    <div class="form-grid">
-                        <div class="form-group full"><label class="form-label">Name *</label><input class="form-input" name="name" id="pf-name" required></div>
-                        <div class="form-group"><label class="form-label">Category</label><select class="form-select" name="category_id" id="pf-category"></select></div>
-                        <div class="form-group"><label class="form-label">Brand</label><input class="form-input" name="brand" id="pf-brand"></div>
-                        <div class="form-group"><label class="form-label">SKU</label><input class="form-input" name="sku" id="pf-sku"></div>
-                        <div class="form-group"><label class="form-label">Price *</label><input class="form-input" type="number" step="0.01" name="price" id="pf-price" required></div>
-                        <div class="form-group"><label class="form-label">Compare at Price</label><input class="form-input" type="number" step="0.01" name="compare_at_price" id="pf-compare"></div>
-                        <div class="form-group"><label class="form-label">Cost Price</label><input class="form-input" type="number" step="0.01" name="cost_price" id="pf-cost"></div>
-                        <div class="form-group"><label class="form-label">Stock *</label><input class="form-input" type="number" name="stock_quantity" id="pf-stock" required></div>
-                        <div class="form-group"><label class="form-label">Weight (kg)</label><input class="form-input" type="number" step="0.01" name="weight" id="pf-weight"></div>
-                        <div class="form-group full"><label class="form-label">Short Description</label><input class="form-input" name="short_description" id="pf-short"></div>
-                        <div class="form-group full"><label class="form-label">Description</label><textarea class="form-textarea" name="description" id="pf-desc" rows="4"></textarea></div>
-                        <div class="form-group full" style="flex-direction:row;gap:24px;">
-                            <label class="form-check"><input type="checkbox" name="is_active" id="pf-active" checked> Active</label>
-                            <label class="form-check"><input type="checkbox" name="is_featured" id="pf-featured"> Featured</label>
-                            <label class="form-check"><input type="checkbox" name="track_inventory" id="pf-track" checked> Track Inventory</label>
+                    <div class="fgrid">
+                        <div class="fgroup full"><label class="flabel">Name *</label><input class="fin" name="name" id="pf-name" required></div>
+                        <div class="fgroup"><label class="flabel">Category</label><select class="fsel" name="category_id" id="pf-category"></select></div>
+                        <div class="fgroup"><label class="flabel">Brand</label><input class="fin" name="brand" id="pf-brand"></div>
+                        <div class="fgroup"><label class="flabel">SKU</label><input class="fin" name="sku" id="pf-sku"></div>
+                        <div class="fgroup"><label class="flabel">Price *</label><input class="fin" type="number" step="0.01" name="price" id="pf-price" required></div>
+                        <div class="fgroup"><label class="flabel">Compare at Price</label><input class="fin" type="number" step="0.01" name="compare_at_price" id="pf-compare"></div>
+                        <div class="fgroup"><label class="flabel">Cost Price</label><input class="fin" type="number" step="0.01" name="cost_price" id="pf-cost"></div>
+                        <div class="fgroup"><label class="flabel">Stock *</label><input class="fin" type="number" name="stock_quantity" id="pf-stock" required></div>
+                        <div class="fgroup"><label class="flabel">Weight (kg)</label><input class="fin" type="number" step="0.01" name="weight" id="pf-weight"></div>
+                        <div class="fgroup full"><label class="flabel">Short Description</label><input class="fin" name="short_description" id="pf-short"></div>
+                        <div class="fgroup full"><label class="flabel">Description</label><textarea class="fta" name="description" id="pf-desc" rows="4"></textarea></div>
+                        <div class="fgroup full" style="flex-direction:row;gap:20px;">
+                            <label class="fcheck"><input type="checkbox" name="is_active" id="pf-active" checked> Active</label>
+                            <label class="fcheck"><input type="checkbox" name="is_featured" id="pf-featured"> Featured</label>
+                            <label class="fcheck"><input type="checkbox" name="track_inventory" id="pf-track" checked> Track Inventory</label>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-cancel" onclick="closeProductForm()">Cancel</button>
-                    <button type="submit" class="btn-save" id="pf-submit">Save Product</button>
+                <div class="modal-foot">
+                    <button type="button" class="btn-ghost" onclick="closeProductForm()">Cancel</button>
+                    <button type="submit" class="btn-primary" id="pf-submit">Save Product</button>
                 </div>
             </form>
         </div>
@@ -359,6 +353,7 @@
         var perPage = 20;
 
         function fmt(v) { return 'AED ' + Number(v||0).toLocaleString('en-AE', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+        function esc(s) { var d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
 
         async function loadProducts() {
             var result = await db.from('products').select('*, categories(name)').is('deleted_at', null).order('created_at', {ascending:false});
@@ -387,7 +382,6 @@
                 opt.value = c.id; opt.textContent = c.name;
                 sel.appendChild(opt);
             });
-            // Also populate modal category select
             var pfSel = document.getElementById('pf-category');
             categories.forEach(function(c) {
                 var opt = document.createElement('option');
@@ -425,10 +419,10 @@
             var tbody = document.getElementById('productsBody');
             var start = (currentPage - 1) * perPage;
             var page = filteredProducts.slice(start, start + perPage);
-            document.getElementById('productsCount').textContent = filteredProducts.length + ' product' + (filteredProducts.length !== 1 ? 's' : '');
+            document.getElementById('productsCount').textContent = filteredProducts.length + ' products';
 
             if (page.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><i class="fas fa-box-open"></i>No products found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="empty"><i class="fas fa-box-open"></i>No products found</td></tr>';
                 document.getElementById('productsPagination').innerHTML = '';
                 return;
             }
@@ -438,17 +432,17 @@
                 if (imgUrl && !imgUrl.startsWith('http')) imgUrl = window.productImageUrl ? window.productImageUrl(imgUrl) : imgUrl;
                 var catName = p.categories ? p.categories.name : '';
                 var stock = p.stock_quantity || 0;
-                var stockClass = stock <= 0 ? 'low' : stock <= 5 ? 'low' : 'ok';
+                var stockClass = stock <= 5 ? 'low' : '';
                 return '<tr>' +
-                    '<td><img class="prod-img" src="' + esc(imgUrl) + '" onerror="this.src=\'/assets/placeholder-laptop.png\'"></td>' +
-                    '<td><div class="prod-name">' + esc(p.name) + '</div><div class="prod-brand">' + esc(p.brand||'') + ' &middot; ' + esc(catName) + '</div></td>' +
-                    '<td class="prod-sku">' + esc(p.sku||'—') + '</td>' +
-                    '<td class="prod-price">' + fmt(p.price) + '</td>' +
-                    '<td class="prod-stock ' + stockClass + '">' + stock + '</td>' +
-                    '<td><span class="status-badge ' + (p.is_active ? 'active' : 'inactive') + '">' + (p.is_active ? 'Active' : 'Inactive') + '</span></td>' +
-                    '<td><div class="action-btns">' +
-                        '<button class="action-btn" title="Edit" onclick="editProduct(\'' + p.id + '\')"><i class="fas fa-pen"></i></button>' +
-                        '<button class="action-btn danger" title="Delete" onclick="deleteProduct(\'' + p.id + '\', \'' + esc(p.name).replace(/'/g,"\\'") + '\')"><i class="fas fa-trash"></i></button>' +
+                    '<td><img class="p-img" src="' + esc(imgUrl) + '" onerror="this.src=\'/assets/placeholder-laptop.png\'" alt=""></td>' +
+                    '<td><div class="p-name">' + esc(p.name) + '</div><div class="p-sub">' + esc(p.brand||'') + (catName ? ' · ' + esc(catName) : '') + '</div></td>' +
+                    '<td class="p-sku">' + esc(p.sku||'—') + '</td>' +
+                    '<td class="p-price">' + fmt(p.price) + '</td>' +
+                    '<td class="p-stock ' + stockClass + '">' + stock + '</td>' +
+                    '<td><span class="dot ' + (p.is_active ? 'on' : 'off') + '"></span>' + (p.is_active ? 'Active' : 'Inactive') + '</td>' +
+                    '<td><div class="row-actions">' +
+                        '<button class="icon-btn" title="Edit" onclick="editProduct(\'' + p.id + '\')"><i class="fas fa-pen"></i></button>' +
+                        '<button class="icon-btn danger" title="Delete" onclick="deleteProduct(\'' + p.id + '\', \'' + esc(p.name).replace(/'/g,"\\'") + '\')"><i class="fas fa-trash"></i></button>' +
                     '</div></td></tr>';
             }).join('');
 
@@ -459,15 +453,15 @@
             var total = Math.ceil(filteredProducts.length / perPage);
             var el = document.getElementById('productsPagination');
             if (total <= 1) { el.innerHTML = ''; return; }
-            var html = '<button class="page-btn" onclick="goPage(' + (currentPage-1) + ')" ' + (currentPage<=1?'disabled':'') + '>&laquo;</button>';
+            var html = '<button class="pg" onclick="goPage(' + (currentPage-1) + ')" ' + (currentPage<=1?'disabled':'') + '>&laquo;</button>';
             for (var i = 1; i <= total; i++) {
                 if (i === 1 || i === total || Math.abs(i - currentPage) <= 2) {
-                    html += '<button class="page-btn ' + (i===currentPage?'active':'') + '" onclick="goPage(' + i + ')">' + i + '</button>';
+                    html += '<button class="pg ' + (i===currentPage?'active':'') + '" onclick="goPage(' + i + ')">' + i + '</button>';
                 } else if (Math.abs(i - currentPage) === 3) {
-                    html += '<span style="color:var(--admin-text-muted);padding:0 4px;">…</span>';
+                    html += '<span class="pg-dots">…</span>';
                 }
             }
-            html += '<button class="page-btn" onclick="goPage(' + (currentPage+1) + ')" ' + (currentPage>=total?'disabled':'') + '>&raquo;</button>';
+            html += '<button class="pg" onclick="goPage(' + (currentPage+1) + ')" ' + (currentPage>=total?'disabled':'') + '>&raquo;</button>';
             el.innerHTML = html;
         }
 
@@ -545,8 +539,6 @@
             if (result.error) { alert('Error: ' + result.error.message); return; }
             loadProducts();
         };
-
-        function esc(s) { var d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
 
         // Init
         document.addEventListener('DOMContentLoaded', function() {
